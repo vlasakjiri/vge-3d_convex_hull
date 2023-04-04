@@ -1,20 +1,18 @@
 
-import { Color, useFrame } from "@react-three/fiber";
+import { useFrame ,Color} from "@react-three/fiber";
 import { Vector3 } from "three";
 import { useRef } from "react";
 type lineProps = {
-    start: Vector3,
-    end: Vector3,
+    points: Array<Vector3>,
     color?: Color
 }
 
-const Line = ({start, end, color="white"}: lineProps) => {
+const MultiLine = ({points, color="white"}: lineProps) => {
     const ref = useRef<any>()
-
     //call setFromPoints function on buffer geometry
     useFrame(() => {
         if (ref.current) {
-            ref.current.geometry.setFromPoints([start, end]);
+            ref.current.geometry.setFromPoints(points);
         }
     })
     return (
@@ -25,7 +23,7 @@ const Line = ({start, end, color="white"}: lineProps) => {
     )
 }
 
-export default Line;
+export default MultiLine;
 
 
 
