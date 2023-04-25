@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { PerspectiveCamera, OrbitControls } from "@react-three/drei";
 import Line from "./components/Line";
 import Point from "./components/Point";
 import MultiLine from "./components/MultiLine";
 import * as THREE from  "three";
 import Triangle from "./components/Triangle";
-import Quickhull from "./modules/Quickhull";
+import {getInitialTetrahedronFromExtremePoints, QuickhullStep} from "./modules/Quickhull";
+
 interface SceneProps {
 
 }
@@ -37,8 +38,18 @@ function generateArraysInRange(N: number, min: number, max: number): Array<THREE
 
 
 const Scene = ({ }: SceneProps) => {
-   const randomPoints = generateArraysInRange(20, -7, 7);
-   let triangles = Quickhull(randomPoints)
+    const randomPoints = useMemo(() => generateArraysInRange(20, -7, 7), []);
+    const [currentHull, setcurrentHull] = useState(getInitialTetrahedronFromExtremePoints(randomPoints))
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            console.log(currentHull)
+            setcurrentHull([...QuickhullStep(randomPoints, currentHull)]);
+        }, 1000);
+    
+        return () => {
+          clearInterval(intervalId);
+        };
+      }, []);
     return (
         <>
             <OrbitControls />
@@ -48,10 +59,8 @@ const Scene = ({ }: SceneProps) => {
             {randomPoints.map(point => {
                 return <Point color='red' position={point} />
             })}
-            {triangles[0].map(triangle => <Triangle vertices={[triangle.a, triangle.b, triangle.c]} color={0x259443} outlineColor={0xff0000} opacity={0.8}/>)}
-            {triangles[1].map(triangle => <Triangle vertices={[triangle.a, triangle.b, triangle.c]} color={0xff0000} outlineColor={0xffffff} opacity={0.8}/>)}
+            {currentHull.map((triangle, index) => <Triangle key={index} vertices={[triangle.a, triangle.b, triangle.c]} color={0x259443} outlineColor={0xff0000} opacity={0.8}/>)}
 
-           
         </>
     )
 }
