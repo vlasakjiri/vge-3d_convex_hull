@@ -131,29 +131,10 @@ export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [
   
       //create tetrahedrons from all adjacent planes
       let newTrianglePlanes: Array<THREE.Triangle> = adjacentPlanes.map(plane => tetrahedronFromVertices([plane.a, plane.b, plane.c, pointWithMaxDistance], false)).flat()
-      let planesToDelete: Array<THREE.Triangle> = []
-  
-  
-  
-  
-      //if 2 tetrahedrons are equal, dont keep any of them
-      for (let i = 0; i < newTrianglePlanes.length; i++) {
-        let newPlane = newTrianglePlanes[i];
-        if (newTrianglePlanes.findIndex((plane, index) => trianglesAreEqual(plane, newPlane) && index !== i) !== -1) {
-          planesToDelete.push(newPlane);
-        }
-      }
-  
-  
-      for (let i = 0; i < newTrianglePlanes.length; i++) {
-        if (planesToDelete.some(plane => plane.equals(newTrianglePlanes[i]))) {
-          newTrianglePlanes.splice(i, 1)
-          i--
-        }
-      }
-  
+
+      let planesRemovedInner: Array<THREE.Triangle> = removeInnerPlanes(newTrianglePlanes)
       //create triangles points pairs from tetrahedrons and ajdacentPlanesPoints
-      let hullPlanesPointsPairs: Array<TrianglePointsPair> = TrianglesPointsPair(newTrianglePlanes, adjacentPlanesPoints)
+      let hullPlanesPointsPairs: Array<TrianglePointsPair> = TrianglesPointsPair(planesRemovedInner, adjacentPlanesPoints)
   
   
       //push triangles with some points on stack and others to result hull
@@ -166,11 +147,37 @@ export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [
   }
   
   else {
-    console.log("konec")
     return [[], trianglePlanesStack.map(plane => plane[0])]
   }
   return [[], []]
 }
+
+ function removeInnerPlanes(trianglePlanes: Array<THREE.Triangle>): Array<THREE.Triangle> {
+  let planesToDelete: Array<THREE.Triangle> = []
+  
+  
+  
+  
+  //if 2 tetrahedrons are equal, dont keep any of them
+  for (let i = 0; i < trianglePlanes.length; i++) {
+    let newPlane = trianglePlanes[i];
+    if (trianglePlanes.findIndex((plane, index) => trianglesAreEqual(plane, newPlane) && index !== i) !== -1) {
+      planesToDelete.push(newPlane);
+    }
+  }
+
+
+  for (let i = 0; i < trianglePlanes.length; i++) {
+    if (planesToDelete.some(plane => plane.equals(trianglePlanes[i]))) {
+      trianglePlanes.splice(i, 1)
+      i--
+    }
+  }
+  return trianglePlanes
+}
+  
+
+
 
 function trianglesAreAdjacent(triangle1: THREE.Triangle, triangle2: THREE.Triangle): boolean {
   let commonVertices = 0;
@@ -195,7 +202,6 @@ function trianglesAreEqual(triangle1: THREE.Triangle, triangle2: THREE.Triangle)
     (triangle1.a.equals(triangle2.b) && triangle1.b.equals(triangle2.c) && triangle1.c.equals(triangle2.a)) ||
     (triangle1.a.equals(triangle2.c) && triangle1.b.equals(triangle2.a) && triangle1.c.equals(triangle2.b)) ||
     (triangle1.a.equals(triangle2.c) && triangle1.b.equals(triangle2.b) && triangle1.c.equals(triangle2.a))
-
 }
 
 

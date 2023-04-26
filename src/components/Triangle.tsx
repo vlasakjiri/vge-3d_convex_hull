@@ -38,17 +38,17 @@ export default function Triangle({outlineColor = 0xffffff,  vertices, color, opa
   const mesh = new THREE.Group();
 
   //render triangle normal
-  const triangle = new THREE.Triangle(vertices[0], vertices[1], vertices[2]);
-  const normal = triangle.getNormal(new THREE.Vector3());
-  const center = triangle.getMidpoint(new THREE.Vector3());
-  const normalLength = 2;
-  const normalHelper = new THREE.ArrowHelper(
-    normal,
-    center,
-    normalLength,
-    0xff0000
-  );
-  mesh.add(normalHelper);
+  // const triangle = new THREE.Triangle(vertices[0], vertices[1], vertices[2]);
+  // const normal = triangle.getNormal(new THREE.Vector3());
+  // const center = triangle.getMidpoint(new THREE.Vector3());
+  // const normalLength = 2;
+  // const normalHelper = new THREE.ArrowHelper(
+  //   normal,
+  //   center,
+  //   normalLength,
+  //   0xff0000
+  // );
+  // mesh.add(normalHelper);
 
 
   const planeMesh = new THREE.Mesh(geometry, planeMaterial);
