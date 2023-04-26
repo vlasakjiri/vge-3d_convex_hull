@@ -5,120 +5,32 @@ interface QuickhullProps {
 }
 export type TrianglePointsPair = [THREE.Triangle, Array<THREE.Vector3>]
 
-//find points with x,y,z extreme values from points array
-function ExtremePoints(points: Array<THREE.Vector3>): Array<THREE.Vector3>{
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-  let minZ = Infinity;
-  let maxZ = -Infinity;
-  let minPoint: THREE.Vector3 | undefined;
-  let maxPoint: THREE.Vector3 | undefined;
-  let minYPoint: THREE.Vector3 | undefined;
-  let maxYPoint: THREE.Vector3 | undefined;
-  let minZPoint: THREE.Vector3 | undefined;
-  let maxZPoint: THREE.Vector3 | undefined;
-  for (const point of points) {
-    if (point.x < minX) {
-      minX = point.x;
-      minPoint = point;
-    }
-    if (point.x > maxX) {
-      maxX = point.x;
-      maxPoint = point;
-    }
-    if (point.y < minY) {
-      minY = point.y;
-      minYPoint = point;
-    }
-    if (point.y > maxY) {
-      maxY = point.y;
-      maxYPoint = point;
-    }
-    if (point.z < minZ) {
-      minZ = point.z;
-      minZPoint = point;
-    }
-    if (point.z > maxZ) {
-      maxZ = point.z;
-      maxZPoint = point;
-    }
-  }
-  if (!minPoint || !maxPoint || !minYPoint || !maxYPoint || !minZPoint || !maxZPoint) {
-    throw new Error("No extreme points found");
-  }
-  
 
-  return [minPoint, maxPoint, minYPoint, maxYPoint, minZPoint, maxZPoint];
-}
-
-function trianglePointDistance(point: THREE.Vector3, triangle: THREE.Triangle)
-{
+function trianglePointDistance(point: THREE.Vector3, triangle: THREE.Triangle) {
   let plane = new THREE.Plane();
   triangle.getPlane(plane);
   var distance = plane.distanceToPoint(point);
   return distance
 }
 
-function isPointInFrontOfTriangle(point: THREE.Vector3, triangle: THREE.Triangle ): boolean {
+function isPointInFrontOfTriangle(point: THREE.Vector3, triangle: THREE.Triangle): boolean {
   let distance = trianglePointDistance(point, triangle)
   const eps_error = 1e-10
-  return  distance > eps_error ;
-}
-function getInitialTetrahedronVertices(extremePoints: Array<THREE.Vector3>): Array<THREE.Vector3>{
-  //find 2 most distant points from extreme points and create line from them
-  let maxDistance = 0;
-  let baseLine : THREE.Line3 = new THREE.Line3()
-  for(let point of extremePoints){
-    for(let point2 of extremePoints){
-      let distance = point.distanceTo(point2)
-      if(distance > maxDistance){
-        maxDistance = distance
-        baseLine = new THREE.Line3(point, point2)
-      } 
-    }
-  }
-  //find point most distant from base line
-  let maxDistance2 = 0;
-  let point3 : THREE.Vector3 = new THREE.Vector3()
-  for(let point of extremePoints){
-    let target = new THREE.Vector3()
-    baseLine.closestPointToPoint(point,false, target)
-    let distance = target.distanceTo(point);
-    
-    if(distance > maxDistance2){
-      maxDistance2 = distance
-      point3 = point
-    }
-  }
-  let baseTriangle : THREE.Triangle = new THREE.Triangle()
-  //find point most distant from base triangle
-  let maxDistance3 = 0;
-  let point4 : THREE.Vector3 = new THREE.Vector3()
-  for(let point of extremePoints){
-    let distance = trianglePointDistance(point, baseTriangle)    
-    if(distance > maxDistance3){
-      maxDistance3 = distance
-      point4 = point
-    }
-  }
-
-
-  return [baseLine.start, baseLine.end, point3, point4]
+  return distance > eps_error;
 }
 
-export function initTrianglesPoints( points: Array<THREE.Vector3>): Array<TrianglePointsPair> {
+
+export function initTrianglesPoints(points: Array<THREE.Vector3>): Array<TrianglePointsPair> {
   // let extremePoints : Array<THREE.Vector3> = ExtremePoints(points)
   // let initialVertices: Array<THREE.Vector3> = getInitialTetrahedronVertices(extremePoints);
 
-  let initialVertices = points.splice(0,4);
+  let initialVertices = points.splice(0, 4);
 
   //init 4 triangles to form initial tetrahedron so its normal vectors point outwards
   let initialTriangles = tetrahedronFromVertices(initialVertices)
   //init triangles with points
   let trianglesPoints: Array<TrianglePointsPair> = initialTriangles.map((triangle) => [triangle, []]);
-  
+
   //filter points which are not in initialVertices
   let pointsOut = points.filter((point) => !initialVertices.includes(point))
   //add points to triangles
@@ -129,14 +41,14 @@ export function initTrianglesPoints( points: Array<THREE.Vector3>): Array<Triang
         trianglePoints[1].push(point);
         break;
       }
-      
+
     }
   }
-  return trianglesPoints;  
+  trianglesPoints.sort((a, b) => b[1].length - a[1].length)
+  return trianglesPoints;
 }
 
-function tetrahedronFromVertices(vertices: Array<THREE.Vector3>, returnBasePlane: boolean = true)
-{
+function tetrahedronFromVertices(vertices: Array<THREE.Vector3>, returnBasePlane: boolean = true) {
   let tetrahedron: Array<THREE.Triangle> = [
     new THREE.Triangle(vertices[0], vertices[1], vertices[2]),
     new THREE.Triangle(vertices[0], vertices[1], vertices[3]),
@@ -166,8 +78,7 @@ function tetrahedronFromVertices(vertices: Array<THREE.Vector3>, returnBasePlane
     }
   }
 
-  if(!returnBasePlane)
-  {
+  if (!returnBasePlane) {
     //remove base plane
     tetrahedron.shift()
   }
@@ -176,73 +87,129 @@ function tetrahedronFromVertices(vertices: Array<THREE.Vector3>, returnBasePlane
 
 
 //returns updated stack of triangular points to process and processed planes with no more points in front of them
-export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>, currentHull: Array<THREE.Triangle>) : [Array<TrianglePointsPair>, Array<THREE.Triangle>]
-{
-  if(trianglePlanesStack.length !== 0)
-  {
-    let triangle = trianglePlanesStack.shift()
-    if(triangle != undefined)
-    {
-      console.log(triangle)
-      if(triangle[1].length === 0)
-      {
-        //no points in front of triangle
-        currentHull.push(triangle[0])
-        return [trianglePlanesStack, currentHull]
-      }
+export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [Array<TrianglePointsPair>, Array<THREE.Triangle>] {
+
+
+  // const index = trianglePlanesStack.findIndex((trianglePlane) => trianglePlane[1].length > 0);
+
+  if (trianglePlanesStack.some(trianglePlane => trianglePlane[1].length > 0)) {
+      let triangle = trianglePlanesStack.shift();
+      if(triangle !== undefined){
+  
       let currentTrianglePlane = triangle[0]
       let pointsInFront = triangle[1]
       //find point with max distance from triangle
       let maxDistance = 0;
-      let pointWithMaxDistance : THREE.Vector3 = new THREE.Vector3()
-      for(let point of pointsInFront){
+      let pointWithMaxDistance: THREE.Vector3 = new THREE.Vector3()
+      for (let point of pointsInFront) {
         let distance = trianglePointDistance(point, currentTrianglePlane)
-        if(distance > maxDistance){
+        if (distance > maxDistance) {
           maxDistance = distance
           pointWithMaxDistance = point
         }
       }
-
-      let newTetrahedron = tetrahedronFromVertices([currentTrianglePlane.a, currentTrianglePlane.b, currentTrianglePlane.c, pointWithMaxDistance], false)
-
-      //push tetrahedron and its points to trianglesPointsPairs
-      
-      let trianglesPointsPairs: Array<TrianglePointsPair> = []
-      for(let i = 0; i < newTetrahedron.length; i++)
-      {
-        trianglesPointsPairs.push([newTetrahedron[i], []])
-      }
-
-      for(let  point of pointsInFront)
-      {
-        for(let i = 0; i< trianglesPointsPairs.length; i++)
-        {
-          let triangle = trianglesPointsPairs[i][0]
-          if(isPointInFrontOfTriangle(point, triangle))
-          {
-            trianglesPointsPairs[i][1].push(point)
-            break
+  
+      // //create tetrahedron from triangle and point with max distance, discard base plane
+  
+  
+      //iteratively find all triangles adjacent to current triangle and its points merged to one array
+      let adjacentPlanes: Array<THREE.Triangle> = [currentTrianglePlane];
+      let adjacentPlanesPoints: Array<THREE.Vector3> = pointsInFront
+      let foundAny: boolean = false
+      do {
+        foundAny = false
+        for (let i = 0; i < trianglePlanesStack.length; i++) {
+          if (isPointInFrontOfTriangle(pointWithMaxDistance, trianglePlanesStack[i][0]) && adjacentPlanes.some(plane => trianglesAreAdjacent(trianglePlanesStack[i][0], plane))) {
+            adjacentPlanes.push(trianglePlanesStack[i][0])
+            adjacentPlanesPoints.push(...trianglePlanesStack[i][1])
+            trianglePlanesStack.splice(i, 1)
+            i--
+            foundAny = true
           }
         }
-      }
-
-      for(let trianglePlane of trianglesPointsPairs)
-      {
-        if(trianglePlane[1].length !== 0)
-        {
-          trianglePlanesStack.push(trianglePlane)
+      } while (foundAny)
+  
+      //create tetrahedrons from all adjacent planes
+      let newTrianglePlanes: Array<THREE.Triangle> = adjacentPlanes.map(plane => tetrahedronFromVertices([plane.a, plane.b, plane.c, pointWithMaxDistance], false)).flat()
+      let planesToDelete: Array<THREE.Triangle> = []
+  
+  
+  
+  
+      //if 2 tetrahedrons are equal, dont keep any of them
+      for (let i = 0; i < newTrianglePlanes.length; i++) {
+        let newPlane = newTrianglePlanes[i];
+        if (newTrianglePlanes.findIndex((plane, index) => trianglesAreEqual(plane, newPlane) && index !== i) !== -1) {
+          planesToDelete.push(newPlane);
         }
-        else
-        {
-          currentHull.push(trianglePlane[0])
+      }
+  
+  
+      for (let i = 0; i < newTrianglePlanes.length; i++) {
+        if (planesToDelete.some(plane => plane.equals(newTrianglePlanes[i]))) {
+          newTrianglePlanes.splice(i, 1)
+          i--
         }
       }
-      return [trianglePlanesStack, currentHull]
+  
+      //create triangles points pairs from tetrahedrons and ajdacentPlanesPoints
+      let hullPlanesPointsPairs: Array<TrianglePointsPair> = TrianglesPointsPair(newTrianglePlanes, adjacentPlanesPoints)
+  
+  
+      //push triangles with some points on stack and others to result hull
+      for (let trianglePlane of hullPlanesPointsPairs) {
+        trianglePlanesStack.push(trianglePlane)
+      }
+      trianglePlanesStack.sort((a, b) => b[1].length - a[1].length)
+      return [trianglePlanesStack, []]
     }
   }
-  else
-  {
-    return [[], currentHull]
+  
+  else {
+    console.log("konec")
+    return [[], trianglePlanesStack.map(plane => plane[0])]
   }
-  return [[], currentHull]
+  return [[], []]
+}
+
+function trianglesAreAdjacent(triangle1: THREE.Triangle, triangle2: THREE.Triangle): boolean {
+  let commonVertices = 0;
+  if (triangle1.a.equals(triangle2.a) || triangle1.a.equals(triangle2.b) || triangle1.a.equals(triangle2.c)) {
+    commonVertices++;
+  }
+  if (triangle1.b.equals(triangle2.a) || triangle1.b.equals(triangle2.b) || triangle1.b.equals(triangle2.c)) {
+    commonVertices++;
+  }
+  if (triangle1.c.equals(triangle2.a) || triangle1.c.equals(triangle2.b) || triangle1.c.equals(triangle2.c)) {
+    commonVertices++;
+  }
+  return commonVertices === 2;
+}
+
+
+//equality of triangles regardless of vertex order
+function trianglesAreEqual(triangle1: THREE.Triangle, triangle2: THREE.Triangle): boolean {
+  return (triangle1.a.equals(triangle2.a) && triangle1.b.equals(triangle2.b) && triangle1.c.equals(triangle2.c)) ||
+    (triangle1.a.equals(triangle2.a) && triangle1.b.equals(triangle2.c) && triangle1.c.equals(triangle2.b)) ||
+    (triangle1.a.equals(triangle2.b) && triangle1.b.equals(triangle2.a) && triangle1.c.equals(triangle2.c)) ||
+    (triangle1.a.equals(triangle2.b) && triangle1.b.equals(triangle2.c) && triangle1.c.equals(triangle2.a)) ||
+    (triangle1.a.equals(triangle2.c) && triangle1.b.equals(triangle2.a) && triangle1.c.equals(triangle2.b)) ||
+    (triangle1.a.equals(triangle2.c) && triangle1.b.equals(triangle2.b) && triangle1.c.equals(triangle2.a))
+
+}
+
+
+//returns array of triangles and points in front of them
+function TrianglesPointsPair(triangles: Array<THREE.Triangle>, points: Array<THREE.Vector3>): Array<TrianglePointsPair> {
+  let facesPoints: Array<TrianglePointsPair> = triangles.map((triangle) => [triangle, []]);
+  for (const point of points) {
+    for (const facePoints of facesPoints) {
+      //point in front of triangle and not any of points of all triangles
+      if (isPointInFrontOfTriangle(point, facePoints[0])) {
+        facePoints[1].push(point);
+        break;
+      }
+    }
+  }
+  return facesPoints;
 }
