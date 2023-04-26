@@ -1,10 +1,6 @@
 import * as THREE from 'three'
 
-interface QuickhullProps {
-  points: Array<THREE.Vector3>
-}
 export type TrianglePointsPair = [THREE.Triangle, Array<THREE.Vector3>]
-
 
 function trianglePointDistance(point: THREE.Vector3, triangle: THREE.Triangle) {
   let plane = new THREE.Plane();
@@ -19,10 +15,7 @@ function isPointInFrontOfTriangle(point: THREE.Vector3, triangle: THREE.Triangle
   return distance > eps_error;
 }
 
-
 export function initTrianglesPoints(points: Array<THREE.Vector3>): Array<TrianglePointsPair> {
-  // let extremePoints : Array<THREE.Vector3> = ExtremePoints(points)
-  // let initialVertices: Array<THREE.Vector3> = getInitialTetrahedronVertices(extremePoints);
 
   let initialVertices = points.splice(0, 4);
 
@@ -63,8 +56,6 @@ function tetrahedronFromVertices(vertices: Array<THREE.Vector3>, returnBasePlane
   centroid.add(vertices[3]);
   centroid.multiplyScalar(1 / 4);
 
-
-
   for (let i = 0; i < tetrahedron.length; i++) {
     const triangle = tetrahedron[i];
     const normal = new THREE.Vector3();
@@ -85,19 +76,17 @@ function tetrahedronFromVertices(vertices: Array<THREE.Vector3>, returnBasePlane
   return tetrahedron;
 }
 
-
 //returns updated stack of triangular points to process and processed planes with no more points in front of them
 export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [Array<TrianglePointsPair>, Array<THREE.Triangle>] {
 
-
   // const index = trianglePlanesStack.findIndex((trianglePlane) => trianglePlane[1].length > 0);
-
   if (trianglePlanesStack.some(trianglePlane => trianglePlane[1].length > 0)) {
-      let triangle = trianglePlanesStack.shift();
-      if(triangle !== undefined){
-  
+    let triangle = trianglePlanesStack.shift();
+    if (triangle !== undefined) {
+
       let currentTrianglePlane = triangle[0]
       let pointsInFront = triangle[1]
+      
       //find point with max distance from triangle
       let maxDistance = 0;
       let pointWithMaxDistance: THREE.Vector3 = new THREE.Vector3()
@@ -108,10 +97,7 @@ export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [
           pointWithMaxDistance = point
         }
       }
-  
-      // //create tetrahedron from triangle and point with max distance, discard base plane
-  
-  
+
       //iteratively find all triangles adjacent to current triangle and its points merged to one array
       let adjacentPlanes: Array<THREE.Triangle> = [currentTrianglePlane];
       let adjacentPlanesPoints: Array<THREE.Vector3> = pointsInFront
@@ -128,15 +114,14 @@ export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [
           }
         }
       } while (foundAny)
-  
+
       //create tetrahedrons from all adjacent planes
       let newTrianglePlanes: Array<THREE.Triangle> = adjacentPlanes.map(plane => tetrahedronFromVertices([plane.a, plane.b, plane.c, pointWithMaxDistance], false)).flat()
-
       let planesRemovedInner: Array<THREE.Triangle> = removeInnerPlanes(newTrianglePlanes)
+      
       //create triangles points pairs from tetrahedrons and ajdacentPlanesPoints
       let hullPlanesPointsPairs: Array<TrianglePointsPair> = TrianglesPointsPair(planesRemovedInner, adjacentPlanesPoints)
-  
-  
+      
       //push triangles with some points on stack and others to result hull
       for (let trianglePlane of hullPlanesPointsPairs) {
         trianglePlanesStack.push(trianglePlane)
@@ -145,19 +130,16 @@ export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [
       return [trianglePlanesStack, []]
     }
   }
-  
+
   else {
     return [[], trianglePlanesStack.map(plane => plane[0])]
   }
   return [[], []]
 }
 
- function removeInnerPlanes(trianglePlanes: Array<THREE.Triangle>): Array<THREE.Triangle> {
+function removeInnerPlanes(trianglePlanes: Array<THREE.Triangle>): Array<THREE.Triangle> {
   let planesToDelete: Array<THREE.Triangle> = []
-  
-  
-  
-  
+
   //if 2 tetrahedrons are equal, dont keep any of them
   for (let i = 0; i < trianglePlanes.length; i++) {
     let newPlane = trianglePlanes[i];
@@ -165,7 +147,6 @@ export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [
       planesToDelete.push(newPlane);
     }
   }
-
 
   for (let i = 0; i < trianglePlanes.length; i++) {
     if (planesToDelete.some(plane => plane.equals(trianglePlanes[i]))) {
@@ -175,9 +156,6 @@ export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [
   }
   return trianglePlanes
 }
-  
-
-
 
 function trianglesAreAdjacent(triangle1: THREE.Triangle, triangle2: THREE.Triangle): boolean {
   let commonVertices = 0;
@@ -193,7 +171,6 @@ function trianglesAreAdjacent(triangle1: THREE.Triangle, triangle2: THREE.Triang
   return commonVertices === 2;
 }
 
-
 //equality of triangles regardless of vertex order
 function trianglesAreEqual(triangle1: THREE.Triangle, triangle2: THREE.Triangle): boolean {
   return (triangle1.a.equals(triangle2.a) && triangle1.b.equals(triangle2.b) && triangle1.c.equals(triangle2.c)) ||
@@ -203,7 +180,6 @@ function trianglesAreEqual(triangle1: THREE.Triangle, triangle2: THREE.Triangle)
     (triangle1.a.equals(triangle2.c) && triangle1.b.equals(triangle2.a) && triangle1.c.equals(triangle2.b)) ||
     (triangle1.a.equals(triangle2.c) && triangle1.b.equals(triangle2.b) && triangle1.c.equals(triangle2.a))
 }
-
 
 //returns array of triangles and points in front of them
 function TrianglesPointsPair(triangles: Array<THREE.Triangle>, points: Array<THREE.Vector3>): Array<TrianglePointsPair> {
