@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useMemo, forwardRef, useRef, Ref } from "react";
 import { PerspectiveCamera, OrbitControls } from "@react-three/drei";
 import Point from "../components/Point";
-import * as THREE from  "three";
+import * as THREE from "three";
 import Triangle from "../components/Triangle";
-import {initTrianglesPoints, QuickhullStep, TrianglePointsPair} from "../modules/Quickhull";
+import { initTrianglesPoints, QuickhullStep, TrianglePointsPair } from "../modules/Quickhull";
 import { AlgorithmSceneRef } from "../App";
 
 type QuickhullSceneProps = {
     animationState: boolean;
     setanimationState: React.Dispatch<React.SetStateAction<boolean>>
     // other props
-  };
+};
 
 function randomRange(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min)
@@ -30,16 +30,16 @@ function generateArraysInRange(N: number, min: number, max: number): Array<THREE
 }
 //forwarded ref to access scene methods from parent
 
-  
-const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((props, ref: Ref<AlgorithmSceneRef>) =>{
+
+const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((props, ref: Ref<AlgorithmSceneRef>) => {
     //handle function calls from parent
-      React.useImperativeHandle(ref, () => ({
+    React.useImperativeHandle(ref, () => ({
         step,
         startAnimation,
         stopAnimation,
         reset,
         stepBack
-      }));
+    }));
 
     //switch value to trigger points regeneration
     const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
@@ -55,34 +55,29 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((props
     useEffect(() => {
         resultHullRef.current = currentResultHull;
         stackRef.current = currentStack;
-      }, [currentResultHull, currentStack]);
+    }, [currentResultHull, currentStack]);
 
 
     //one step of algorithm
     const step = () => {
-        if(stackRef.current.length === 0 && resultHullRef.current.length === 0)
-        {
+        if (stackRef.current.length === 0 && resultHullRef.current.length === 0) {
             let initTriangles = initTrianglesPoints(randomPoints)
             setcurrentStack([[...initTriangles]])
             setcurrentResultHull([])
         }
-        else if(resultHullRef.current.length === 0)
-        {
-            let [newStack, newResultHull] = QuickhullStep([...stackRef.current[stackRef.current.length -1]])
-            if(newResultHull.length === 0)
-            {
+        else if (resultHullRef.current.length === 0) {
+            let [newStack, newResultHull] = QuickhullStep([...stackRef.current[stackRef.current.length - 1]])
+            if (newResultHull.length === 0) {
                 setcurrentStack([...stackRef.current, newStack])
             }
             setcurrentResultHull(newResultHull)
         }
     }
-    const stepBack = () => {	
-        if(resultHullRef.current.length !== 0)
-        {
+    const stepBack = () => {
+        if (resultHullRef.current.length !== 0) {
             setcurrentResultHull([])
         }
-        else
-        {
+        else {
             let currentStack = stackRef.current;
             currentStack.pop();
             setcurrentStack([...currentStack])
@@ -90,12 +85,10 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((props
     }
 
     const startAnimation = () => {
-        const intervalId= setInterval(() => {
+        const intervalId = setInterval(() => {
             props.setanimationState(true)
-            
             step()
-            if(resultHullRef.current.length !== 0)
-            {
+            if (resultHullRef.current.length !== 0) {
                 clearInterval(intervalId);
                 props.setanimationState(false)
             }
@@ -126,16 +119,49 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((props
             {randomPoints.map(point => {
                 return <Point color='red' position={point} />
             })}
-            {currentStack.length !== 0 && currentStack[currentStack.length-1].map((triangle, index) => <Triangle key={index} vertices={[triangle[0].a, triangle[0].b, triangle[0].c]} color={0x259443} outlineColor={0xff0000} opacity={0.8}/>)}
-            {currentResultHull.map((triangle, index) => <Triangle key={index} vertices={[triangle.a, triangle.b, triangle.c]} color={0x016b28} outlineColor={0xffffff} opacity={1}/>)}
-            {/* next plane to process render in different color */}
-            {currentStack.length !== 0 && 
-            currentResultHull.length ===0 && <Triangle vertices={[currentStack[currentStack.length-1][0][0].a, currentStack[currentStack.length-1][0][0].b, currentStack[currentStack.length-1][0][0].c]} 
-            color={0xff9d1c} outlineColor={0xff0000} opacity={0.8}/>}
+
+            {currentStack.length !== 0 && currentStack[currentStack.length - 1].map((triangle, index) =>
+                <Triangle
+                    key={index}
+                    vertices={[
+                        triangle[0].a,
+                        triangle[0].b,
+                        triangle[0].c
+                    ]}
+                    color={0x259443}
+                    outlineColor={0xff0000}
+                    opacity={0.8}
+                />
+            )}
+
+            {currentResultHull.map((triangle, index) =>
+                <Triangle
+                    key={index}
+                    vertices={[
+                        triangle.a,
+                        triangle.b,
+                        triangle.c
+                    ]}
+                    color={0x016b28}
+                    outlineColor={0xffffff}
+                    opacity={1} />
+            )}
+
+            {currentStack.length !== 0 &&
+                currentResultHull.length === 0 &&
+                <Triangle
+                    vertices={[
+                        currentStack[currentStack.length - 1][0][0].a,
+                        currentStack[currentStack.length - 1][0][0].b,
+                        currentStack[currentStack.length - 1][0][0].c
+                    ]}
+                    color={0xff9d1c}
+                    outlineColor={0xff0000}
+                    opacity={0.8} />
+            }
         </>
     )
 })
 export default QuickhullScene;
 
 
-  
