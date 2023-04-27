@@ -1,0 +1,46 @@
+#animationControls {
+    display: flex;
+    justify-content: flex-start;
+    background-color: white;
+    align-items: center;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  #animationControls button {
+    color: #ffffff;
+    background-color: #333;
+    border: 2px solid #333;
+    border-radius: 5px;
+    font-size: 16px;
+    padding: 10px 20px;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  
+#menuLinks a {
+  color: #333;
+  text-decoration: none;
+  padding:5px 20px;
+  font-weight: 600;
+  font-size: 20px;
+  
+}
+#menuLinks{
+    padding-right: 30px;
+}
+
+#menuLinks a:hover {
+  text-decoration: underline;
+}
+
+
+
+#menu {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+  }

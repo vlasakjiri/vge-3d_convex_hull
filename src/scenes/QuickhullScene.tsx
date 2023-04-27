@@ -1,15 +1,16 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, forwardRef, useRef, Ref } from "react";
 import { PerspectiveCamera, OrbitControls } from "@react-three/drei";
-import Point from "./components/Point";
+import Point from "../components/Point";
 import * as THREE from  "three";
-import Triangle from "./components/Triangle";
-import {initTrianglesPoints, QuickhullStep, TrianglePointsPair} from "./modules/Quickhull";
-import { forwardRef } from "react";
-import { useRef } from "react";
+import Triangle from "../components/Triangle";
+import {initTrianglesPoints, QuickhullStep, TrianglePointsPair} from "../modules/Quickhull";
+import { AlgorithmSceneRef } from "../App";
 
-
-interface SceneProps {
-}
+type QuickhullSceneProps = {
+    animationState: boolean;
+    setanimationState: React.Dispatch<React.SetStateAction<boolean>>
+    // other props
+  };
 
 function randomRange(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min)
@@ -28,17 +29,9 @@ function generateArraysInRange(N: number, min: number, max: number): Array<THREE
     return arrays;
 }
 //forwarded ref to access scene methods from parent
-export interface QuickhullSceneRef {
-    step(): void;
-    startAnimation(): void,
-    stopAnimation(): void,
-    reset(): void,
-    stepBack(): void,
 
-  }
   
-const QuickhullScene = forwardRef<QuickhullSceneRef>((props, ref) =>{
-
+const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((props, ref: Ref<AlgorithmSceneRef>) =>{
     //handle function calls from parent
       React.useImperativeHandle(ref, () => ({
         step,
@@ -98,16 +91,20 @@ const QuickhullScene = forwardRef<QuickhullSceneRef>((props, ref) =>{
 
     const startAnimation = () => {
         const intervalId= setInterval(() => {
+            props.setanimationState(true)
+            
             step()
             if(resultHullRef.current.length !== 0)
             {
                 clearInterval(intervalId);
+                props.setanimationState(false)
             }
         }, 1000);
         setIntervalId(intervalId)
     }
 
     const stopAnimation = () => {
+        props.setanimationState(false)
         clearInterval(intervalId);
         setIntervalId(undefined);
     }
@@ -117,6 +114,7 @@ const QuickhullScene = forwardRef<QuickhullSceneRef>((props, ref) =>{
         setcurrentResultHull([])
         setpointsRegenerateTrigger(!pointsRegenerateTrigger)
         stopAnimation()
+        props.setanimationState(false)
     }
 
     return (
@@ -128,7 +126,6 @@ const QuickhullScene = forwardRef<QuickhullSceneRef>((props, ref) =>{
             {randomPoints.map(point => {
                 return <Point color='red' position={point} />
             })}
-            {currentStack.length !== 0 && console.log(currentStack)}
             {currentStack.length !== 0 && currentStack[currentStack.length-1].map((triangle, index) => <Triangle key={index} vertices={[triangle[0].a, triangle[0].b, triangle[0].c]} color={0x259443} outlineColor={0xff0000} opacity={0.8}/>)}
             {currentResultHull.map((triangle, index) => <Triangle key={index} vertices={[triangle.a, triangle.b, triangle.c]} color={0x016b28} outlineColor={0xffffff} opacity={1}/>)}
             {/* next plane to process render in different color */}

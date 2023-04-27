@@ -17,7 +17,7 @@ function isPointInFrontOfTriangle(point: THREE.Vector3, triangle: THREE.Triangle
 
 export function initTrianglesPoints(points: Array<THREE.Vector3>): Array<TrianglePointsPair> {
 
-  let initialVertices = points.splice(0, 4);
+  let initialVertices = points.slice(0, 4);
 
   //init 4 triangles to form initial tetrahedron so its normal vectors point outwards
   let initialTriangles = tetrahedronFromVertices(initialVertices)
