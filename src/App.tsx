@@ -28,9 +28,9 @@ function App() {
             <button onClick={() => algorithmSceneRef.current.stepBack()}>Step back</button>
 
             {!animationState ?
-              <button onClick={algorithmSceneRef.current.startAnimation}>Start animation</button>
+              <button onClick={() => algorithmSceneRef.current.startAnimation()}>Start animation</button>
               :
-              <button onClick={algorithmSceneRef.current.stopAnimation}>Pause animation</button>}
+              <button onClick={() => algorithmSceneRef.current.stopAnimation()}>Pause animation</button>}
 
             <button onClick={() => algorithmSceneRef.current.reset()}>Reset</button>
           </div>
