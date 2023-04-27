@@ -1,16 +1,14 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { PerspectiveCamera, OrbitControls } from "@react-three/drei";
-import Line from "./components/Line";
 import Point from "./components/Point";
-import MultiLine from "./components/MultiLine";
 import * as THREE from  "three";
 import Triangle from "./components/Triangle";
 import {initTrianglesPoints, QuickhullStep, TrianglePointsPair} from "./modules/Quickhull";
-import { Html } from "@react-three/drei";
 import { forwardRef } from "react";
 import { useRef } from "react";
-interface SceneProps {
 
+
+interface SceneProps {
 }
 
 function randomRange(min: number, max: number) {
@@ -30,27 +28,30 @@ function generateArraysInRange(N: number, min: number, max: number): Array<THREE
     return arrays;
 }
 //forwarded ref to access scene methods from parent
-interface SceneRef {
+export interface QuickhullSceneRef {
     step(): void;
     startAnimation(): void,
     stopAnimation(): void,
-    reset(): void
+    reset(): void,
+    stepBack(): void,
+
   }
   
-const Scene = forwardRef<SceneRef>((props, ref) =>{
+const QuickhullScene = forwardRef<QuickhullSceneRef>((props, ref) =>{
 
-
-    
+    //handle function calls from parent
       React.useImperativeHandle(ref, () => ({
         step,
         startAnimation,
         stopAnimation,
-        reset
+        reset,
+        stepBack
       }));
+
     //switch value to trigger points regeneration
     const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
     const randomPoints = useMemo(() => generateArraysInRange(40, -10, 10), [pointsRegenerateTrigger]);
-    const [currentStack, setcurrentStack] = useState(new Array<TrianglePointsPair>())
+    const [currentStack, setcurrentStack] = useState(new Array<Array<TrianglePointsPair>>())
     const [currentResultHull, setcurrentResultHull] = useState(new Array<THREE.Triangle>())
     //animation interval
     const [intervalId, setIntervalId] = React.useState<NodeJS.Timer | undefined>();
@@ -69,15 +70,29 @@ const Scene = forwardRef<SceneRef>((props, ref) =>{
         if(stackRef.current.length === 0 && resultHullRef.current.length === 0)
         {
             let initTriangles = initTrianglesPoints(randomPoints)
-            setcurrentStack([...initTriangles])
+            setcurrentStack([[...initTriangles]])
             setcurrentResultHull([])
-
         }
-        else if(stackRef.current.length !== 0)
+        else if(resultHullRef.current.length === 0)
         {
-            let [newStack, newResultHull] = QuickhullStep(stackRef.current)
-            setcurrentStack([...newStack])
-            setcurrentResultHull([...newResultHull])
+            let [newStack, newResultHull] = QuickhullStep([...stackRef.current[stackRef.current.length -1]])
+            if(newResultHull.length === 0)
+            {
+                setcurrentStack([...stackRef.current, newStack])
+            }
+            setcurrentResultHull(newResultHull)
+        }
+    }
+    const stepBack = () => {	
+        if(resultHullRef.current.length !== 0)
+        {
+            setcurrentResultHull([])
+        }
+        else
+        {
+            let currentStack = stackRef.current;
+            currentStack.pop();
+            setcurrentStack([...currentStack])
         }
     }
 
@@ -113,13 +128,17 @@ const Scene = forwardRef<SceneRef>((props, ref) =>{
             {randomPoints.map(point => {
                 return <Point color='red' position={point} />
             })}
-            {currentStack.map((triangle, index) => <Triangle key={index} vertices={[triangle[0].a, triangle[0].b, triangle[0].c]} color={0x259443} outlineColor={0xff0000} opacity={0.8}/>)}
+            {currentStack.length !== 0 && console.log(currentStack)}
+            {currentStack.length !== 0 && currentStack[currentStack.length-1].map((triangle, index) => <Triangle key={index} vertices={[triangle[0].a, triangle[0].b, triangle[0].c]} color={0x259443} outlineColor={0xff0000} opacity={0.8}/>)}
             {currentResultHull.map((triangle, index) => <Triangle key={index} vertices={[triangle.a, triangle.b, triangle.c]} color={0x016b28} outlineColor={0xffffff} opacity={1}/>)}
-            {currentStack.length !== 0 && <Triangle vertices={[currentStack[0][0].a, currentStack[0][0].b, currentStack[0][0].c]} color={0xff9d1c} outlineColor={0xff0000} opacity={0.8}/>}
+            {/* next plane to process render in different color */}
+            {currentStack.length !== 0 && 
+            currentResultHull.length ===0 && <Triangle vertices={[currentStack[currentStack.length-1][0][0].a, currentStack[currentStack.length-1][0][0].b, currentStack[currentStack.length-1][0][0].c]} 
+            color={0xff9d1c} outlineColor={0xff0000} opacity={0.8}/>}
         </>
     )
 })
-export default Scene;
+export default QuickhullScene;
 
 
   

@@ -1,24 +1,20 @@
 import React from 'react';
 import './App.css';
 import { Canvas } from '@react-three/fiber';
-import Scene from './Scene';
+import QuickhullScene from './QuickhullScene';
+import { QuickhullSceneRef } from './QuickhullScene';
 
-interface QuickhullSceneRef {
-  step(): void;
-  startAnimation(): void,
-  stopAnimation(): void,
-  reset(): void
-}
 function App() {
-  const quickhullSceneRef = React.useRef<QuickhullSceneRef>({ step: () => { }, startAnimation: () => { }, stopAnimation: () => { }, reset: () => { } });
+  const algorithmSceneRef = React.useRef<QuickhullSceneRef>({ step: () => { }, startAnimation: () => { }, stopAnimation: () => { }, reset: () => { }, stepBack: () => { } });
   return (
     <>
-      <button onClick={() => quickhullSceneRef.current.step()}>Step</button>
-      <button onClick={() => quickhullSceneRef.current.startAnimation()}>startAnimation</button>
-      <button onClick={() => quickhullSceneRef.current.stopAnimation()}>stopAnimation</button>
-      <button onClick={() => quickhullSceneRef.current.reset()}>reset</button>
+      <button onClick={() => algorithmSceneRef.current.step()}>Step</button>
+      <button onClick={() => algorithmSceneRef.current.startAnimation()}>startAnimation</button>
+      <button onClick={() => algorithmSceneRef.current.stopAnimation()}>stopAnimation</button>
+      <button onClick={() => algorithmSceneRef.current.reset()}>reset</button>
+      <button onClick={() => algorithmSceneRef.current.stepBack()}>stepBack</button>
       <Canvas>
-        <Scene ref={quickhullSceneRef} />
+        <QuickhullScene ref={algorithmSceneRef} />
       </Canvas>
     </>
   );
