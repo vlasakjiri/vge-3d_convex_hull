@@ -4,9 +4,10 @@ import React, { useEffect, useState, useMemo, forwardRef, useRef, Ref } from "re
 import { AlgorithmSceneRef } from "../App";
 import Point from "../components/Point";
 import Triangle from "../components/Triangle";
-import { IterativeConvexHull, Point3D, Face } from "../modules/Iterative";
+import { IterativeConvexHull, Point3D, Face, Edge } from "../modules/Iterative";
 
 import * as THREE from "three";
+import Line from "../components/Line";
 
 
 
@@ -47,6 +48,8 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
   const [currentResultHull, setcurrentResultHull] = useState(new Array<Face>());
   const [idx, setidx] = useState(0);
   const [shouldClean, setshouldClean] = useState(false);
+  const [edgesToRemove, setedgesToRemove] = useState(new Array<Edge>());
+
   const hullObj = useMemo(() => new IterativeConvexHull(), []);
 
 
@@ -69,6 +72,7 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
     {
       hullObj.cleanUp();
       setshouldClean(false);
+      setedgesToRemove([]);
     }
     else if (idx < randomPoints.length)
     {
@@ -81,6 +85,7 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
       {
         let addedNew = hullObj.increHull(randomPoints[idx]);
         setshouldClean(addedNew);
+        setedgesToRemove(hullObj.edges.filter(edge => edge.remove));
         setidx(idx + 1);
       }
     }
@@ -98,7 +103,7 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
 
       step();
       //stop animation condition
-      if (false)
+      if (currentResultHull.length !== 0)
       {
         clearInterval(intervalId);
         props.setanimationState(false);
@@ -134,18 +139,25 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
       {
         return <Point color='red' position={point.toVector3()} />;
       })}
-      {!shouldClean &&
-        <Point color='yellow' position={randomPoints[idx]?.toVector3()} />
+      {!shouldClean && idx > 0 && idx < randomPoints.length - 1 &&
+        <Point color="#ffff00" position={randomPoints[idx]?.toVector3()} />
       }
       {
         currentResultHull.map(triangle =>
         {
-          return <Triangle opacity={0.5} color='blue' vertices={[
+          return <Triangle opacity={idx === randomPoints.length - 1 ? 1 : 0.8} color='green' vertices={[
             triangle.vertices[0].toVector3(),
             triangle.vertices[1].toVector3(),
             triangle.vertices[2].toVector3()
           ]} />;
         })
+      }
+      {
+        edgesToRemove.map(edge =>
+        {
+          return <Line color={"#ffff00"} start={edge.endpoints[0].toVector3()} end={edge.endpoints[1].toVector3()}  ></Line>;
+        })
+
       }
 
 

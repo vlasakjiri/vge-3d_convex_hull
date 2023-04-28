@@ -54,7 +54,7 @@ export class Face
     }
 }
 
-class Edge
+export class Edge
 {
     public remove: boolean;
     public adjface1: Face | null;
@@ -97,7 +97,7 @@ export class IterativeConvexHull
 {
 
     public faces: Face[] = [];
-    private edges: Edge[] = [];
+    public edges: Edge[] = [];
     private volumeSign(f: Face, p: Point3D): number
     {
         let vol: number;
