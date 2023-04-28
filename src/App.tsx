@@ -3,9 +3,9 @@ import './App.css';
 import { Canvas } from '@react-three/fiber';
 import QuickhullScene from './scenes/QuickhullScene';
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import AlgoScene from './scenes/AlgoScene';
+import BruteForceScene from './scenes/BruteForceScene';
 import AlgoScene2 from './scenes/AlgoScene2';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 
 export interface AlgorithmSceneRef {
   step(): void;
@@ -35,27 +35,26 @@ function App() {
             <button onClick={() => algorithmSceneRef.current.reset()}>Reset</button>
           </div>
           <div id="menuLinks">
-            <Link to="/">Quickhull</Link>
-            <Link to="/algo2">Algo 2</Link>
+            <Link to="/">Bruteforce</Link>
+            <Link to="/qh">Quickhull</Link>
             <Link to="/algo3">Algo 3</Link>
           </div>
         </div>
         <Canvas>
-          <Routes>
+          <Routes>            
             <Route path="/" element={
-              <QuickhullScene ref={algorithmSceneRef}
-                animationState={animationState}
-                setanimationState={setAnimationState} />
-            }
-            />
-            <Route path="/algo2" element={
-              <AlgoScene
+              <BruteForceScene
               ref={algorithmSceneRef}
                 animationState={animationState}
                 setanimationState={setAnimationState}
               />}
             />
-
+            <Route path="/qh" element={
+              <QuickhullScene ref={algorithmSceneRef}
+                animationState={animationState}
+                setanimationState={setAnimationState} />
+            }
+            />
             <Route path="/algo3" element={
               <AlgoScene2
               ref={algorithmSceneRef}
@@ -63,9 +62,6 @@ function App() {
                 setanimationState={setAnimationState}
               />}
             />
-
-
-
 
           </Routes>
 
