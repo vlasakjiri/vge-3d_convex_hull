@@ -25,6 +25,11 @@ class Point3D
     {
         return new Point3D(vector.x, vector.y, vector.z);
     }
+
+    public equals(other: Point3D): boolean
+    {
+        return this.x === other.x && this.y === other.y && this.z === other.z;
+    }
 }
 
 class Face
@@ -91,8 +96,8 @@ class Edge
 class ConvexHull
 {
 
-    private faces: Face[];
-    private edges: Edge[];
+    private faces: Face[] = [];
+    private edges: Edge[] = [];
     private volumeSign(f: Face, p: Point3D): number
     {
         let vol: number;
@@ -150,7 +155,7 @@ class ConvexHull
         create_edge(b, c);
     }
 
-    private BuildFirstHull(pointcloud: Point3D[]): boolean
+    private buildFirstHull(pointcloud: Point3D[]): boolean
     {
         const n = pointcloud.length;
         if (n <= 3)
@@ -193,6 +198,117 @@ class ConvexHull
         return true;
     }
 
+    private findInnerPoint(f: Face, e: Edge): Point3D | undefined
+    {
+        for (let i = 0; i < 3; i++)
+        {
+            if (f.vertices[i] === e.endpoints[0] || f.vertices[i] === e.endpoints[1])
+            {
+                continue;
+            }
+            return f.vertices[i];
+        }
+    }
+
+    public increHull(pt: Point3D): void
+    {
+        // Find the illuminated faces (which will be removed later)
+        let vis = false;
+        for (const face of this.faces)
+        {
+            if (this.volumeSign(face, pt) < 0)
+            {
+                face.visible = vis = true;
+            }
+        }
+        if (!vis) return;
+
+        // Find the edges to make new tangent surface or to be removed
+        for (const edge of this.edges)
+        {
+            let face1 = edge.adjface1;
+            let face2 = edge.adjface2;
+
+            // Newly added edge
+            if (face1 == null || face2 == null)
+            {
+                continue;
+            }
+            // This edge is to be removed because two adjacent faces will be removed
+            else if (face1.visible && face2.visible)
+            {
+                edge.remove = true;
+            }
+            // Edge on the boundary of visibility, which will be used to extend a tangent
+            // cone surface.
+            else if (face1.visible || face2.visible)
+            {
+                if (face1.visible)
+                {
+                    [face1, face2] = [face2, face1]; // Swap faces
+                }
+                const inner_pt = this.findInnerPoint(face2, edge);
+                if (inner_pt === undefined)
+                {
+                    console.log("inner_pt == undefined");
+                    continue;
+                }
+                edge.erase(face2);
+                this.addOneFace(edge.endpoints[0], edge.endpoints[1], pt, inner_pt);
+            }
+        }
+    }
+
+    public ConstructHull(pointcloud: Point3D[]): Point3D[] | undefined
+    {
+        if (!this.buildFirstHull(pointcloud)) return;
+
+        for (const pt of pointcloud)
+        {
+            if (pt.processed) continue;
+            this.increHull(pt);
+            this.cleanUp();
+        }
+
+        return this.extractExteriorPoints();
+    }
+
+    cleanUp(): void
+    {
+        for (let i = 0; i < this.edges.length; i++)
+        {
+            const edge = this.edges[i];
+            if (edge.remove)
+            {
+                const pt1 = edge.endpoints[0];
+                const pt2 = edge.endpoints[1];
+                this.edges.splice(i, 1);
+                i--;
+            }
+        }
+        for (let i = 0; i < this.faces.length; i++)
+        {
+            const face = this.faces[i];
+            if (face.visible)
+            {
+                this.faces.splice(i, 1);
+                i--;
+            }
+        }
+    }
+
+    private extractExteriorPoints(): Point3D[]
+    {
+        const exteriorSet = new Set<Point3D>();
+        for (const f of this.faces)
+        {
+            for (let i = 0; i < 3; i++)
+            {
+                exteriorSet.add(f.vertices[i]);
+            }
+        }
+        return [...exteriorSet];
+    }
 }
 
 
