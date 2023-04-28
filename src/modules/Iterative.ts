@@ -96,7 +96,7 @@ class Edge
 export class IterativeConvexHull
 {
 
-    private faces: Face[] = [];
+    public faces: Face[] = [];
     private edges: Edge[] = [];
     private volumeSign(f: Face, p: Point3D): number
     {
@@ -155,7 +155,7 @@ export class IterativeConvexHull
         create_edge(b, c);
     }
 
-    private buildFirstHull(pointcloud: Point3D[]): boolean
+    public buildFirstHull(pointcloud: Point3D[]): boolean
     {
         const n = pointcloud.length;
         if (n <= 3)
@@ -210,7 +210,7 @@ export class IterativeConvexHull
         }
     }
 
-    public increHull(pt: Point3D): void
+    public increHull(pt: Point3D): boolean
     {
         // Find the illuminated faces (which will be removed later)
         let vis = false;
@@ -221,7 +221,12 @@ export class IterativeConvexHull
                 face.visible = vis = true;
             }
         }
-        if (!vis) return;
+        if (!vis)
+        {
+            console.log("Point is not visible from any face");
+            return false;
+        }
+
 
         // Find the edges to make new tangent surface or to be removed
         for (const edge of this.edges)
@@ -257,6 +262,7 @@ export class IterativeConvexHull
                 this.addOneFace(edge.endpoints[0], edge.endpoints[1], pt, inner_pt);
             }
         }
+        return true;
     }
 
     public ConstructHull(pointcloud: Point3D[]): Face[] | undefined
@@ -273,7 +279,7 @@ export class IterativeConvexHull
         return this.faces;
     }
 
-    cleanUp(): void
+    public cleanUp(): void
     {
         for (let i = 0; i < this.edges.length; i++)
         {

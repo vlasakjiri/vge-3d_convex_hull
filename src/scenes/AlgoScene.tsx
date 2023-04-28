@@ -42,10 +42,15 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
 {
 
   const [intervalId, setIntervalId] = React.useState<NodeJS.Timer | undefined>();
-  const randomPoints = useMemo(() => generateArraysInRange(40, -10, 10), []);
+  const randomPoints = useMemo(() => generateArraysInRange(40, -10, 10).map(point => Point3D.fromVector3(point)), []);
 
-  let points = randomPoints.map(point => Point3D.fromVector3(point));
-  let hull = new IterativeConvexHull().ConstructHull(points) as Face[];
+  const [currentResultHull, setcurrentResultHull] = useState(new Array<Face>());
+  const [idx, setidx] = useState(0);
+  const [shouldClean, setshouldClean] = useState(false);
+  const hullObj = useMemo(() => new IterativeConvexHull(), []);
+
+
+  // let hull = new IterativeConvexHull().ConstructHull(points) as Face[];
 
   //handle function calls from parent
   React.useImperativeHandle(ref, () => ({
@@ -56,8 +61,30 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
     stepBack
   }));
 
+
+
   const step = () =>
   {
+    if (shouldClean)
+    {
+      hullObj.cleanUp();
+      setshouldClean(false);
+    }
+    else if (idx < randomPoints.length)
+    {
+      if (idx === 0)
+      {
+        hullObj.buildFirstHull(randomPoints);
+        setidx(4);
+      }
+      else
+      {
+        let addedNew = hullObj.increHull(randomPoints[idx]);
+        setshouldClean(addedNew);
+        setidx(idx + 1);
+      }
+    }
+    setcurrentResultHull(hullObj.faces);
   };
   const stepBack = () =>
   {
@@ -105,10 +132,13 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
 
       {randomPoints.map(point =>
       {
-        return <Point color='red' position={point} />;
+        return <Point color='red' position={point.toVector3()} />;
       })}
+      {!shouldClean &&
+        <Point color='yellow' position={randomPoints[idx]?.toVector3()} />
+      }
       {
-        hull.map(triangle =>
+        currentResultHull.map(triangle =>
         {
           return <Triangle opacity={0.5} color='blue' vertices={[
             triangle.vertices[0].toVector3(),
