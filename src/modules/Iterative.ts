@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 
-class Point3D
+export class Point3D
 {
     public x: number;
     public y: number;
@@ -32,7 +32,7 @@ class Point3D
     }
 }
 
-class Face
+export class Face
 {
     public visible: boolean;
     public vertices: [Point3D, Point3D, Point3D];
@@ -93,7 +93,7 @@ class Edge
     }
 }
 
-class ConvexHull
+export class IterativeConvexHull
 {
 
     private faces: Face[] = [];
@@ -259,7 +259,7 @@ class ConvexHull
         }
     }
 
-    public ConstructHull(pointcloud: Point3D[]): Point3D[] | undefined
+    public ConstructHull(pointcloud: Point3D[]): Face[] | undefined
     {
         if (!this.buildFirstHull(pointcloud)) return;
 
@@ -270,7 +270,7 @@ class ConvexHull
             this.cleanUp();
         }
 
-        return this.extractExteriorPoints();
+        return this.faces;
     }
 
     cleanUp(): void

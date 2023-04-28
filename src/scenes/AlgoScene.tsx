@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo, forwardRef, useRef, Ref } from "re
 import { AlgorithmSceneRef } from "../App";
 import Point from "../components/Point";
 import Triangle from "../components/Triangle";
-
+import { IterativeConvexHull, Point3D, Face } from "../modules/Iterative";
 
 import * as THREE from "three";
 
@@ -44,7 +44,8 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
   const [intervalId, setIntervalId] = React.useState<NodeJS.Timer | undefined>();
   const randomPoints = useMemo(() => generateArraysInRange(40, -10, 10), []);
 
-  // let hull = computeConvexHull(randomPoints);
+  let points = randomPoints.map(point => Point3D.fromVector3(point));
+  let hull = new IterativeConvexHull().ConstructHull(points) as Face[];
 
   //handle function calls from parent
   React.useImperativeHandle(ref, () => ({
@@ -100,46 +101,23 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
       <ambientLight intensity={0.2} />
 
       <pointLight position={[20, 20, 20]} />
-      <Point position={[3, 3, 3]} color='red'></Point>
-      <Point position={[3, 0, 0]} color='red'></Point>
-      <Point position={[0, 3, 0]} color='red'></Point>
-      <Point position={[0, 0, 3]} color='red'></Point>
 
-      <Triangle
-        vertices={[new THREE.Vector3(0, 0, 3), new THREE.Vector3(0, 3, 0), new THREE.Vector3(3, 0, 0)]}
-        color='green'
-        opacity={0.5}
-      ></Triangle>
-      <Triangle
-        vertices={[new THREE.Vector3(3, 3, 3), new THREE.Vector3(0, 3, 0), new THREE.Vector3(0, 0, 3)]}
-        color='green'
-        opacity={0.5}
-      ></Triangle>
-      <Triangle
-        vertices={[new THREE.Vector3(0, 0, 3), new THREE.Vector3(3, 0, 0), new THREE.Vector3(3, 3, 3)]}
-        color='green'
-        opacity={0.5}
-      ></Triangle>
-      <Triangle
-        vertices={[new THREE.Vector3(3, 3, 3), new THREE.Vector3(3, 0, 0), new THREE.Vector3(0, 3, 0)]}
-        color='green'
-        opacity={0.5}
-      ></Triangle>
 
-      {/* {randomPoints.map(point =>
+      {randomPoints.map(point =>
       {
         return <Point color='red' position={point} />;
       })}
       {
-        hull["points"].map(point =>
+        hull.map(triangle =>
         {
-          return <Point color='blue' position={point} />;
+          return <Triangle opacity={0.5} color='blue' vertices={[
+            triangle.vertices[0].toVector3(),
+            triangle.vertices[1].toVector3(),
+            triangle.vertices[2].toVector3()
+          ]} />;
         })
-      } */}
-      {/* <mesh>
-        <boxBufferGeometry args={[10, 10, 10]} />
-        <meshBasicMaterial color="white" />
-      </mesh> */}
+      }
+
 
     </>
   );
