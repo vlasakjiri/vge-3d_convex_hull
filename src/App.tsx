@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import { Canvas } from '@react-three/fiber';
 import QuickhullScene from './scenes/QuickhullScene';
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { HashRouter, Routes, Route, Link } from "react-router-dom";
 import IterativeScene from './scenes/IterativeScene';
 import { useState, useRef } from 'react';
 import { FaPlay } from "@react-icons/all-files/fa/FaPlay";
@@ -47,7 +47,7 @@ function App()
 
   return (
     <>
-      <BrowserRouter>
+      <HashRouter>
         <div id="menu">
           <div id="animationControls">
             <button onClick={() => algorithmSceneRef.current.stepBack()}><FaStepBackward /></button>
@@ -111,7 +111,7 @@ function App()
           </Routes>
 
         </Canvas>
-      </BrowserRouter >
+      </HashRouter >
     </>
   );
 }
