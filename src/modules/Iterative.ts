@@ -302,19 +302,6 @@ export class IterativeConvexHull
             }
         }
     }
-
-    private extractExteriorPoints(): Point3D[]
-    {
-        const exteriorSet = new Set<Point3D>();
-        for (const f of this.faces)
-        {
-            for (let i = 0; i < 3; i++)
-            {
-                exteriorSet.add(f.vertices[i]);
-            }
-        }
-        return [...exteriorSet];
-    }
 }
 
 

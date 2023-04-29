@@ -39,6 +39,13 @@ function generateArraysInRange(N: number, min: number, max: number): Array<THREE
   return arrays;
 }
 
+type State = {
+  currentResultHull: Array<Face>;
+  idx: number;
+  shouldClean: boolean;
+  edgesToRemove: Array<Edge>;
+};
+
 const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref<AlgorithmSceneRef>) =>
 {
 
@@ -46,21 +53,32 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
   const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
   const randomPoints = useMemo(() => generateArraysInRange(40, -10, 10).map(point => Point3D.fromVector3(point)), [pointsRegenerateTrigger]);
 
+  const [currentStack, setcurrentStack] = useState(new Array<State>());
+  const [stackIdx, setstackIdx] = useState(0);
+
+
   const [currentResultHull, setcurrentResultHull] = useState(new Array<Face>());
-  const [idx, setidx] = useState(0);
+  const [pointIdx, setPointIdx] = useState(0);
   const [shouldClean, setshouldClean] = useState(false);
   const [edgesToRemove, setedgesToRemove] = useState(new Array<Edge>());
 
 
   // const hullObj = useMemo(() => , []);
   const hullObjRef = useRef(new IterativeConvexHull());
-  const idxRef = useRef(idx);
+  const idxRef = useRef(pointIdx);
   const shouldCleanRef = useRef(shouldClean);
+  const stackIdxRef = useRef(stackIdx);
+  const currentStackRef = useRef(currentStack);
+  const edgesToRemoveRef = useRef(edgesToRemove);
+
   useEffect(() =>
   {
-    idxRef.current = idx;
+    idxRef.current = pointIdx;
     shouldCleanRef.current = shouldClean;
-  }, [idx, shouldClean]);
+    stackIdxRef.current = stackIdx;
+    currentStackRef.current = currentStack;
+    edgesToRemoveRef.current = edgesToRemove;
+  }, [pointIdx, shouldClean, stackIdx, currentStack, edgesToRemove]);
 
 
 
@@ -80,32 +98,68 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
 
   const step = () =>
   {
-    console.log(idxRef.current);
-    if (shouldCleanRef.current)
+    if (stackIdxRef.current < currentStackRef.current.length)
     {
-      hullObjRef.current.cleanUp();
-      setshouldClean(false);
-      setedgesToRemove([]);
+      let stack = currentStackRef.current;
+      let state = stack[stackIdxRef.current];
+      setcurrentResultHull(state.currentResultHull);
+      setPointIdx(state.idx);
+      setshouldClean(state.shouldClean);
+      setedgesToRemove(state.edgesToRemove);
+      setstackIdx(stackIdxRef.current + 1);
     }
-    else if (idxRef.current < randomPoints.length)
+    else
     {
-      if (idxRef.current === 0)
+      console.log(idxRef.current);
+      let edgesToRemove: Edge[] = [];
+      if (shouldCleanRef.current)
       {
-        hullObjRef.current.buildFirstHull(randomPoints);
-        setidx(4);
+        hullObjRef.current.cleanUp();
+        setshouldClean(false);
+        setedgesToRemove([]);
+        console.log("cleaned");
       }
-      else
+      else if (idxRef.current < randomPoints.length)
       {
-        let addedNew = hullObjRef.current.increHull(randomPoints[idxRef.current]);
-        setshouldClean(addedNew);
-        setedgesToRemove(hullObjRef.current.edges.filter(edge => edge.remove));
-        setidx(idxRef.current + 1);
+        if (idxRef.current === 0)
+        {
+          hullObjRef.current.buildFirstHull(randomPoints);
+          setPointIdx(4);
+        }
+        else
+        {
+          let addedNew = hullObjRef.current.increHull(randomPoints[idxRef.current]);
+          setshouldClean(addedNew);
+          edgesToRemove = hullObjRef.current.edges.filter(edge => edge.remove);
+          setedgesToRemove([...edgesToRemove]);
+          setPointIdx(idxRef.current + 1);
+        }
       }
+      setcurrentResultHull(hullObjRef.current.faces);
+      setcurrentStack([...currentStackRef.current,
+      {
+        currentResultHull: [...hullObjRef.current.faces],
+        idx: idxRef.current,
+        shouldClean: shouldCleanRef.current,
+        edgesToRemove
+      }]);
+      setstackIdx(stackIdxRef.current + 1);
     }
-    setcurrentResultHull(hullObjRef.current.faces);
   };
+
+
   const stepBack = () =>
   {
+    if (stackIdxRef.current > 0)
+    {
+      let stack = currentStackRef.current;
+      let state = stack[stackIdxRef.current - 1];
+      setcurrentResultHull(state.currentResultHull);
+      setPointIdx(state.idx);
+      setshouldClean(state.shouldClean);
+      setedgesToRemove(state.edgesToRemove);
+      setstackIdx(stackIdxRef.current - 1);
+    }
   };
 
   const startAnimation = () =>
@@ -137,8 +191,10 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
     stopAnimation();
     setpointsRegenerateTrigger(!pointsRegenerateTrigger);
     props.setanimationState(false);
-    setidx(0);
+    setPointIdx(0);
     hullObjRef.current = new IterativeConvexHull();
+    setstackIdx(0);
+    setcurrentStack([]);
     setcurrentResultHull([]);
     setshouldClean(false);
     setedgesToRemove([]);
@@ -159,13 +215,13 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
       {
         return <Point color='red' position={point.toVector3()} />;
       })}
-      {!shouldClean && idx > 0 && idx < randomPoints.length - 1 &&
-        <Point color="#ffff00" position={randomPoints[idx]?.toVector3()} />
+      {!shouldClean && pointIdx > 0 && pointIdx < randomPoints.length - 1 &&
+        <Point color="#ffff00" position={randomPoints[pointIdx]?.toVector3()} />
       }
       {
         currentResultHull.map(triangle =>
         {
-          return <Triangle opacity={idx === randomPoints.length ? 1 : 0.8} color='green' vertices={[
+          return <Triangle opacity={pointIdx === randomPoints.length ? 1 : 0.8} color='green' vertices={[
             triangle.vertices[0].toVector3(),
             triangle.vertices[1].toVector3(),
             triangle.vertices[2].toVector3()
