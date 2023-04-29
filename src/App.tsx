@@ -3,11 +3,12 @@ import './App.css';
 import { Canvas } from '@react-three/fiber';
 import QuickhullScene from './scenes/QuickhullScene';
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import AlgoScene from './scenes/AlgoScene';
+import IterativeScene from './scenes/IterativeScene';
 import AlgoScene2 from './scenes/AlgoScene2';
 import { useState, useRef } from 'react';
 
-export interface AlgorithmSceneRef {
+export interface AlgorithmSceneRef
+{
   step(): void;
   startAnimation(): void,
   stopAnimation(): void,
@@ -15,7 +16,8 @@ export interface AlgorithmSceneRef {
   stepBack(): void,
 }
 
-function App() {
+function App()
+{
   const algorithmSceneRef = React.useRef<AlgorithmSceneRef>({ step: () => { }, startAnimation: () => { }, stopAnimation: () => { }, reset: () => { }, stepBack: () => { } });
   const [animationState, setAnimationState] = useState(false);
 
@@ -36,7 +38,7 @@ function App() {
           </div>
           <div id="menuLinks">
             <Link to="/">Quickhull</Link>
-            <Link to="/algo2">Algo 2</Link>
+            <Link to="/iterative">Iterative algorithm</Link>
             <Link to="/algo3">Algo 3</Link>
           </div>
         </div>
@@ -48,9 +50,9 @@ function App() {
                 setanimationState={setAnimationState} />
             }
             />
-            <Route path="/algo2" element={
-              <AlgoScene
-              ref={algorithmSceneRef}
+            <Route path="/iterative" element={
+              <IterativeScene
+                ref={algorithmSceneRef}
                 animationState={animationState}
                 setanimationState={setAnimationState}
               />}
@@ -58,7 +60,7 @@ function App() {
 
             <Route path="/algo3" element={
               <AlgoScene2
-              ref={algorithmSceneRef}
+                ref={algorithmSceneRef}
                 animationState={animationState}
                 setanimationState={setAnimationState}
               />}
