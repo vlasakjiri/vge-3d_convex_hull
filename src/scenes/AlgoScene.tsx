@@ -50,7 +50,18 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
   const [shouldClean, setshouldClean] = useState(false);
   const [edgesToRemove, setedgesToRemove] = useState(new Array<Edge>());
 
-  const hullObj = useMemo(() => new IterativeConvexHull(), []);
+
+  // const hullObj = useMemo(() => , []);
+  const hullObjRef = useRef(new IterativeConvexHull());
+  const idxRef = useRef(idx);
+  const shouldCleanRef = useRef(shouldClean);
+  useEffect(() =>
+  {
+    idxRef.current = idx;
+    shouldCleanRef.current = shouldClean;
+  }, [idx, shouldClean]);
+
+
 
 
   // let hull = new IterativeConvexHull().ConstructHull(points) as Face[];
@@ -68,28 +79,29 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
 
   const step = () =>
   {
-    if (shouldClean)
+    console.log(idxRef.current);
+    if (shouldCleanRef.current)
     {
-      hullObj.cleanUp();
+      hullObjRef.current.cleanUp();
       setshouldClean(false);
       setedgesToRemove([]);
     }
-    else if (idx < randomPoints.length)
+    else if (idxRef.current < randomPoints.length)
     {
-      if (idx === 0)
+      if (idxRef.current === 0)
       {
-        hullObj.buildFirstHull(randomPoints);
+        hullObjRef.current.buildFirstHull(randomPoints);
         setidx(4);
       }
       else
       {
-        let addedNew = hullObj.increHull(randomPoints[idx]);
+        let addedNew = hullObjRef.current.increHull(randomPoints[idxRef.current]);
         setshouldClean(addedNew);
-        setedgesToRemove(hullObj.edges.filter(edge => edge.remove));
-        setidx(idx + 1);
+        setedgesToRemove(hullObjRef.current.edges.filter(edge => edge.remove));
+        setidx(idxRef.current + 1);
       }
     }
-    setcurrentResultHull(hullObj.faces);
+    setcurrentResultHull(hullObjRef.current.faces);
   };
   const stepBack = () =>
   {
@@ -103,12 +115,12 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
 
       step();
       //stop animation condition
-      if (currentResultHull.length !== 0)
+      if (idxRef.current === randomPoints.length)
       {
         clearInterval(intervalId);
         props.setanimationState(false);
       }
-    }, 1000);
+    }, 100);
     setIntervalId(intervalId);
   };
 
@@ -145,7 +157,7 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
       {
         currentResultHull.map(triangle =>
         {
-          return <Triangle opacity={idx === randomPoints.length - 1 ? 1 : 0.8} color='green' vertices={[
+          return <Triangle opacity={idx === randomPoints.length ? 1 : 0.8} color='green' vertices={[
             triangle.vertices[0].toVector3(),
             triangle.vertices[1].toVector3(),
             triangle.vertices[2].toVector3()
