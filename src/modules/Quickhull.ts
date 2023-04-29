@@ -75,6 +75,18 @@ function tetrahedronFromVertices(vertices: Array<THREE.Vector3>, returnBasePlane
   }
   return tetrahedron;
 }
+export function mostDistantPoint(triangle: THREE.Triangle, points: Array<THREE.Vector3>): THREE.Vector3 {
+  let maxDistance = 0;
+  let pointWithMaxDistance: THREE.Vector3 = new THREE.Vector3()
+  for (let point of points) {
+    let distance = trianglePointDistance(point, triangle)
+    if (distance > maxDistance) {
+      maxDistance = distance
+      pointWithMaxDistance = point
+    }
+  }
+  return pointWithMaxDistance
+}
 
 //returns updated stack of triangular points to process and processed planes with no more points in front of them
 export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [Array<TrianglePointsPair>, Array<THREE.Triangle>] {
@@ -88,15 +100,8 @@ export function QuickhullStep(trianglePlanesStack: Array<TrianglePointsPair>): [
       let pointsInFront = triangle[1]
       
       //find point with max distance from triangle
-      let maxDistance = 0;
-      let pointWithMaxDistance: THREE.Vector3 = new THREE.Vector3()
-      for (let point of pointsInFront) {
-        let distance = trianglePointDistance(point, currentTrianglePlane)
-        if (distance > maxDistance) {
-          maxDistance = distance
-          pointWithMaxDistance = point
-        }
-      }
+      let pointWithMaxDistance : THREE.Vector3 = mostDistantPoint(currentTrianglePlane, pointsInFront)
+    
 
       //iteratively find all triangles adjacent to current triangle and its points merged to one array
       let adjacentPlanes: Array<THREE.Triangle> = [currentTrianglePlane];

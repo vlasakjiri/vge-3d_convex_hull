@@ -14,8 +14,7 @@ import BruteForceScene from './scenes/BruteForceScene';
 
 
 
-export interface AlgorithmSceneRef
-{
+export interface AlgorithmSceneRef {
   step(): void;
   startAnimation(): void,
   stopAnimation(): void,
@@ -24,9 +23,10 @@ export interface AlgorithmSceneRef
   delay?: number;
 }
 
-function App()
-{
-  const [delay, setDelay] = useState(1000);
+function App() {
+  const [delay, setDelay] = useState<number>(500);
+  const [opacity, setopacity] = useState<number>(70);
+
   const [algorithmScene, setAlgorithmScene] = useState<AlgorithmSceneRef>(
     {
       step: () => { },
@@ -38,18 +38,35 @@ function App()
   );
   const algorithmSceneRef = React.useRef<AlgorithmSceneRef>(algorithmScene);
   const [animationState, setAnimationState] = useState(false);
-
-  const handleDelayChange = (event: any) =>
-  {
+  const [pointsCount, setpointsCount] = useState<number>(20)
+  const handleDelayChange = (event: any) => {
     setDelay(Number(event.target.value));
-    // setAlgorithmScene({ ...algorithmSceneRef.current, delay: Number(event.target.value) });
+    //recreate interval with new delay
+    algorithmSceneRef.current.stopAnimation()
+    algorithmSceneRef.current.startAnimation()
   };
+
+  const scenesComponents = [
+    {
+      "path": "/",
+      "SceneComponent": QuickhullScene
+    },
+    {
+      "path": "/iterative",
+      "SceneComponent": IterativeScene
+    },
+    {
+      "path": "/bruteforce",
+      "SceneComponent": BruteForceScene
+    }
+  ];
 
   return (
     <>
       <HashRouter>
         <div id="menu">
           <div id="animationControls">
+
             <button onClick={() => algorithmSceneRef.current.stepBack()}><FaStepBackward /></button>
 
             {!animationState ?
@@ -63,53 +80,74 @@ function App()
               {
                 padding: "4px 14px"
               }
-            } onClick={() => algorithmSceneRef.current.reset()}><MdRefresh size={28} /></button>
+            } disabled={pointsCount < 4 || pointsCount > 1000} onClick={() => algorithmSceneRef.current.reset()}><MdRefresh size={28} /></button>
+            <div className='inputContainer'>
 
-            <label htmlFor="delay">Animation delay:</label>
-            <input
-              type="range"
-              id="delay"
-              name="delay"
-              min="0"
-              max="2000"
-              value={delay}
-              onChange={handleDelayChange}
-            />
-            {delay}ms
+              <label htmlFor='pointsCount'>Points count:</label>
+              <input
+                type='number'
+                id='pointsCount'
+                min={4}
+                max={1000}
+                className='pointsCount'
+                value={pointsCount}
+                onChange={(event) => setpointsCount(Number(event.target.value))} />
+            </div>
+
+            <div className='inputContainer'>
+              <label htmlFor="delay">Animation step (ms):</label>
+              <input
+                type="range"
+                id="delay"
+                name="delay"
+                min="10"
+                max="2000"
+                value={delay}
+                onChange={handleDelayChange}
+              />
+              {delay}ms
+            </div>
+            <div className='inputContainer'>
+              <label htmlFor="opacity">Opacity:</label>
+              <input
+                type="range"
+                id="opacity"
+                name="opacity"
+                min="0"
+                max="100"
+                value={opacity}
+                onChange={event => setopacity(Number(event.target.value))}
+              />
+              {opacity}%
+            </div>
           </div>
+
           <div id="menuLinks">
             <Link to="/">Quickhull</Link>
             <Link to="/iterative">Iterative algorithm</Link>
             <Link to="/bruteforce">Bruteforce</Link>
 
-
           </div>
         </div>
         <Canvas>
           <Routes>
-            <Route path="/" element={
-              <QuickhullScene ref={algorithmSceneRef}
-                animationState={animationState}
-                setanimationState={setAnimationState} />
-            }
-            />
-            <Route path="/iterative" element={
-              <IterativeScene
-                ref={algorithmSceneRef}
-                animationState={animationState}
-                setanimationState={setAnimationState}
-              />}
-            />
-            <Route path="/bruteforce" element={
-              <BruteForceScene
-                ref={algorithmSceneRef}
-                animationState={animationState}
-                setanimationState={setAnimationState} />
-            }
-            />
+            {scenesComponents.map(({ path, SceneComponent }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<SceneComponent ref={algorithmSceneRef}
+                  animationState={animationState}
+                  setanimationState={setAnimationState}
+                  animationStepSpeed={delay}
+                  pointsCount={pointsCount}
+                  opacity={(opacity / 100)} />}
 
+              />
+            ))}
+
+                    
+            
           </Routes>
-
         </Canvas>
       </HashRouter >
     </>

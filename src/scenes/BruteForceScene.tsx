@@ -1,67 +1,61 @@
 import React, { useEffect, useState, useMemo, forwardRef, useRef, Ref } from "react";
 import { PerspectiveCamera, OrbitControls } from "@react-three/drei";
 import Point from "../components/Point";
-import * as THREE from  "three";
+import * as THREE from "three";
 import Triangle from "../components/Triangle";
 import BruteForceConvexHull from "../modules/BruteForce"
 import { AlgorithmSceneRef } from "../App";
-
+import { generatePointsInRange } from "../modules/Utils";
 type SceneProps = {
-    animationState: boolean;
-    setanimationState: React.Dispatch<React.SetStateAction<boolean>>
-  };
+    animationState: boolean,
+    setanimationState: React.Dispatch<React.SetStateAction<boolean>>,
+    animationStepSpeed?: number,
+    pointsCount?: number,
+    opacity?: number,
+};
 
-function randomRange(min: number, max: number) {
-    return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
-function generateArraysInRange(N: number, min: number, max: number): Array<THREE.Vector3> {
-    const arrays = [];
-    for (let i = 0; i < N; i++) {
-        let vec = new THREE.Vector3(
-            randomRange(min, max),
-            randomRange(min, max),
-            randomRange(min, max)
-        );
-        arrays.push(vec);
-    }
-    return arrays;
-}
-  
-const BruteForceScene = forwardRef<AlgorithmSceneRef, SceneProps>((props, ref: Ref<AlgorithmSceneRef>) =>{
+const BruteForceScene = forwardRef<AlgorithmSceneRef, SceneProps>((
+    {
+        animationState,
+        setanimationState,
+        animationStepSpeed = 500,
+        pointsCount = 10,
+        opacity = 0.5
+    }: SceneProps,
+    ref: Ref<AlgorithmSceneRef>) => {
     //handle function calls from parent
-      React.useImperativeHandle(ref, () => ({
+    React.useImperativeHandle(ref, () => ({
         step,
         startAnimation,
         stopAnimation,
         reset,
         stepBack
-      }));
+    }));
 
     //switch value to trigger points regeneration
     const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
-    const randomPoints = useMemo(() => generateArraysInRange(10, -10, 10), [pointsRegenerateTrigger]);
+    const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10), [pointsRegenerateTrigger]);
     //animation interval
     const [intervalId, setIntervalId] = React.useState<NodeJS.Timer | undefined>();
 
-    const [i,setI] = useState(0)
-    const [j,setJ] = useState(1)
-    const [k,setK] = useState(2)
-    const [prevState,setPrevState] = useState([{
+    const [i, setI] = useState(0)
+    const [j, setJ] = useState(1)
+    const [k, setK] = useState(2)
+    const [prevState, setPrevState] = useState([{
         i: 0,
         j: 1,
         k: 2,
         hull: new Array<THREE.Triangle>(),
         triangle: new THREE.Triangle()
     }])
-    const [triangle, setTriangle] = useState(new THREE.Triangle() )
+    const [triangle, setTriangle] = useState(new THREE.Triangle())
     const [hull, setHull] = useState(new Array<THREE.Triangle>())
 
     //references on states so interval has access to correct state values
     const iRef = useRef(i);
     const jRef = useRef(j);
-    const kRef = useRef(k);   
-    const hullRef = useRef(hull); 
+    const kRef = useRef(k);
+    const hullRef = useRef(hull);
     const triangleRef = useRef(triangle);
     const prevStateRef = useRef(prevState);
     useEffect(() => {
@@ -71,7 +65,7 @@ const BruteForceScene = forwardRef<AlgorithmSceneRef, SceneProps>((props, ref: R
         hullRef.current = hull;
         triangleRef.current = triangle;
         prevStateRef.current = prevState;
-      }, [i, j, k, hull, triangle, prevState]);
+    }, [i, j, k, hull, triangle, prevState]);
 
 
     //one step of algorithm
@@ -83,26 +77,26 @@ const BruteForceScene = forwardRef<AlgorithmSceneRef, SceneProps>((props, ref: R
         setTriangle(triangle)
 
         const n = randomPoints.length;
-        let triangleContained = BruteForceConvexHull(randomPoints, 
+        let triangleContained = BruteForceConvexHull(randomPoints,
             iRef.current, jRef.current, kRef.current)
-        if(triangleContained){
+        if (triangleContained) {
             setHull([...hullRef.current, triangle])
         }
-        
-        if(kRef.current + 1 < n){
-            setK(kRef.current+1)
+
+        if (kRef.current + 1 < n) {
+            setK(kRef.current + 1)
         }
-        else if(jRef.current + 2 < n){
-            setJ(jRef.current+1)
-            setK(jRef.current+2)
+        else if (jRef.current + 2 < n) {
+            setJ(jRef.current + 1)
+            setK(jRef.current + 2)
         }
-        else if(iRef.current + 3 < n){
-            setI(iRef.current+1)
-            setJ(iRef.current+2)
-            setK(iRef.current+3)
+        else if (iRef.current + 3 < n) {
+            setI(iRef.current + 1)
+            setJ(iRef.current + 2)
+            setK(iRef.current + 3)
         }
         setPrevState([
-            ...prevStateRef.current, 
+            ...prevStateRef.current,
             {
                 i: iRef.current,
                 j: jRef.current,
@@ -111,12 +105,12 @@ const BruteForceScene = forwardRef<AlgorithmSceneRef, SceneProps>((props, ref: R
                 triangle: triangleRef.current
             }
         ])
-    }    
+    }
 
-    const stepBack = () => {	
-        if(prevStateRef.current.length > 0){
+    const stepBack = () => {
+        if (prevStateRef.current.length > 0) {
             const state = prevStateRef.current.pop()
-            if (state){
+            if (state) {
                 setI(state.i)
                 setJ(state.j)
                 setK(state.k)
@@ -128,22 +122,21 @@ const BruteForceScene = forwardRef<AlgorithmSceneRef, SceneProps>((props, ref: R
     }
 
     const startAnimation = () => {
-        const intervalId= setInterval(() => {
-            props.setanimationState(true)
+        setanimationState(true)
+        const intervalId = setInterval(() => {
             step()
-            if(iRef.current === randomPoints.length - 3
+            if (iRef.current === randomPoints.length - 3
                 && jRef.current === randomPoints.length - 2
-                && kRef.current === randomPoints.length - 1)
-            {
+                && kRef.current === randomPoints.length - 1) {
                 clearInterval(intervalId);
-                props.setanimationState(false)
+                setanimationState(false)
             }
-        }, 100);
+        }, animationStepSpeed);
         setIntervalId(intervalId)
     }
 
     const stopAnimation = () => {
-        props.setanimationState(false)
+        setanimationState(false)
         clearInterval(intervalId);
         setIntervalId(undefined);
     }
@@ -163,7 +156,7 @@ const BruteForceScene = forwardRef<AlgorithmSceneRef, SceneProps>((props, ref: R
         }])
         setpointsRegenerateTrigger(!pointsRegenerateTrigger)
         stopAnimation()
-        props.setanimationState(false)
+        setanimationState(false)
     }
 
     return (
@@ -175,19 +168,18 @@ const BruteForceScene = forwardRef<AlgorithmSceneRef, SceneProps>((props, ref: R
             {randomPoints.map(point => {
                 return <Point color='red' position={point} />
             })}
-            {hull.map((triangle, index) => <Triangle key={index} 
-                vertices={[triangle.a, triangle.b, triangle.c]} 
-                color={0x016b28} 
-                outlineColor={0xffffff} 
-                opacity={1}/>)
+            {hull.map((triangle, index) => <Triangle key={index}
+                vertices={[triangle.a, triangle.b, triangle.c]}
+                color={0x016b28}
+                outlineColor={0xffffff}
+                opacity={opacity} />)
             }
-            {<Triangle vertices={[triangle.a, triangle.b, triangle.c]} 
-                color={0xff9d1c} 
-                outlineColor={0xff0000} 
-                opacity={0.8}/>
+            {<Triangle vertices={[triangle.a, triangle.b, triangle.c]}
+                color={0xff9d1c}
+                outlineColor={0xff0000}
+                opacity={opacity} />
             }
         </>
     )
 })
 export default BruteForceScene;
-  
