@@ -4,13 +4,13 @@ import { Canvas } from '@react-three/fiber';
 import QuickhullScene from './scenes/QuickhullScene';
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import IterativeScene from './scenes/IterativeScene';
-import AlgoScene2 from './scenes/AlgoScene2';
 import { useState, useRef } from 'react';
 import { FaPlay } from "@react-icons/all-files/fa/FaPlay";
 import { FaPause } from "@react-icons/all-files/fa/FaPause";
 import { FaStepBackward } from "@react-icons/all-files/fa/FaStepBackward";
 import { FaStepForward } from "@react-icons/all-files/fa/FaStepForward";
 import { MdRefresh } from "@react-icons/all-files/md/MdRefresh";
+import BruteForceScene from './scenes/BruteForceScene';
 
 
 
@@ -80,7 +80,9 @@ function App()
           <div id="menuLinks">
             <Link to="/">Quickhull</Link>
             <Link to="/iterative">Iterative algorithm</Link>
-            <Link to="/algo3">Algo 3</Link>
+            <Link to="/bruteforce">Bruteforce</Link>
+
+
           </div>
         </div>
         <Canvas>
@@ -98,17 +100,13 @@ function App()
                 setanimationState={setAnimationState}
               />}
             />
-
-            <Route path="/algo3" element={
-              <AlgoScene2
+            <Route path="/bruteforce" element={
+              <BruteForceScene
                 ref={algorithmSceneRef}
                 animationState={animationState}
-                setanimationState={setAnimationState}
-              />}
+                setanimationState={setAnimationState} />
+            }
             />
-
-
-
 
           </Routes>
 
