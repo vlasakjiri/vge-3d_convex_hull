@@ -4,7 +4,7 @@ import { Canvas } from '@react-three/fiber';
 import QuickhullScene from './scenes/QuickhullScene';
 import { HashRouter, Routes, Route, Link } from "react-router-dom";
 import IterativeScene from './scenes/IterativeScene';
-import { useState, useRef } from 'react';
+import { useState} from 'react';
 import { FaPlay } from "@react-icons/all-files/fa/FaPlay";
 import { FaPause } from "@react-icons/all-files/fa/FaPause";
 import { FaStepBackward } from "@react-icons/all-files/fa/FaStepBackward";
@@ -67,13 +67,13 @@ function App() {
         <div id="menu">
           <div id="animationControls">
 
-            <button onClick={() => algorithmSceneRef.current.stepBack()}><FaStepBackward /></button>
+            <button onClick={() => algorithmSceneRef.current.stepBack()}><FaStepBackward size={16}/></button>
 
             {!animationState ?
-              <button onClick={() => algorithmSceneRef.current.startAnimation()}><FaPlay /></button>
+              <button onClick={() => algorithmSceneRef.current.startAnimation()}><FaPlay size={16}/></button>
               :
-              <button onClick={() => algorithmSceneRef.current.stopAnimation()}><FaPause /></button>}
-            <button onClick={() => algorithmSceneRef.current.step()}><FaStepForward /></button>
+              <button onClick={() => algorithmSceneRef.current.stopAnimation()}><FaPause size={16}/></button>}
+            <button onClick={() => algorithmSceneRef.current.step()}><FaStepForward size={16} /></button>
 
 
             <button style={
