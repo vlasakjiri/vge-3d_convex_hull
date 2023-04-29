@@ -59,7 +59,11 @@ function App()
             <button onClick={() => algorithmSceneRef.current.step()}><FaStepForward /></button>
 
 
-            <button onClick={() => algorithmSceneRef.current.reset()}><MdRefresh /></button>
+            <button style={
+              {
+                padding: "4px 14px"
+              }
+            } onClick={() => algorithmSceneRef.current.reset()}><MdRefresh size={28} /></button>
 
             <label htmlFor="delay">Animation delay:</label>
             <input
@@ -109,7 +113,7 @@ function App()
           </Routes>
 
         </Canvas>
-      </BrowserRouter>
+      </BrowserRouter >
     </>
   );
 }
