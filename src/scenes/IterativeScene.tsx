@@ -48,7 +48,7 @@ type State = {
 
 const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref<AlgorithmSceneRef>) =>
 {
-
+  const [delay, setDelay] = useState(1000);
   const [intervalId, setIntervalId] = React.useState<NodeJS.Timer | undefined>();
   const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
   const randomPoints = useMemo(() => generateArraysInRange(40, -10, 10).map(point => Point3D.fromVector3(point)), [pointsRegenerateTrigger]);
@@ -91,7 +91,8 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
     startAnimation,
     stopAnimation,
     reset,
-    stepBack
+    stepBack,
+    delay
   }));
 
 
@@ -174,12 +175,12 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>((props, ref: Ref
 
       step();
       //stop animation condition
-      if (pointIdxRef.current === randomPoints.length - 1)
+      if (pointIdxRef.current === randomPoints.length)
       {
         clearInterval(intervalId);
         props.setanimationState(false);
       }
-    }, 100);
+    }, delay);
     setIntervalId(intervalId);
   };
 
