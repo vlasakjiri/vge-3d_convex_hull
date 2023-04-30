@@ -1,18 +1,22 @@
 import * as THREE from "three";
 
-interface TriangleProps {
+interface TriangleProps
+{
   vertices: THREE.Vector3[];
   color: THREE.ColorRepresentation;
   opacity?: number;
-  outlineColor?: THREE.ColorRepresentation
+  outlineColor?: THREE.ColorRepresentation;
+  side?: THREE.Side;
 }
 
-export default function Triangle({outlineColor = 0xffffff,  vertices, color, opacity = 1 }: TriangleProps) {
+export default function Triangle({ outlineColor = 0xffffff, vertices, color, opacity = 1, side = THREE.FrontSide }: TriangleProps)
+{
   const geometry = new THREE.BufferGeometry();
 
   const verticesArray = new Float32Array(vertices.length * 3);
 
-  for (let i = 0; i < vertices.length; i++) {
+  for (let i = 0; i < vertices.length; i++)
+  {
     verticesArray[i * 3] = vertices[i].x;
     verticesArray[i * 3 + 1] = vertices[i].y;
     verticesArray[i * 3 + 2] = vertices[i].z;
@@ -25,13 +29,13 @@ export default function Triangle({outlineColor = 0xffffff,  vertices, color, opa
 
   const planeMaterial = new THREE.MeshBasicMaterial({
     color: color,
-    side: THREE.DoubleSide,
+    side,
     opacity: opacity,
     transparent: true
   });
 
   const wireframeMaterial = new THREE.MeshBasicMaterial({
-    color: outlineColor ,
+    color: outlineColor,
     wireframe: true,
   });
 

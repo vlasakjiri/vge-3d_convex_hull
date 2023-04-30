@@ -27,7 +27,8 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((
         pointsCount = 10,
         opacity = 0.5
     }: QuickhullSceneProps,
-    ref: Ref<AlgorithmSceneRef>) => {
+    ref: Ref<AlgorithmSceneRef>) =>
+{
     //handle function calls from parent
     React.useImperativeHandle(ref, () => ({
         step,
@@ -40,73 +41,86 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((
     //switch value to trigger points regeneration
     const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
     const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10), [pointsRegenerateTrigger, pointsCount]);
-    const [currentStack, setcurrentStack] = useState(new Array<Array<TrianglePointsPair>>())
-    const [currentResultHull, setcurrentResultHull] = useState(new Array<THREE.Triangle>())
+    const [currentStack, setcurrentStack] = useState(new Array<Array<TrianglePointsPair>>());
+    const [currentResultHull, setcurrentResultHull] = useState(new Array<THREE.Triangle>());
     //animation interval
     const [intervalId, setIntervalId] = React.useState<NodeJS.Timer | undefined>();
 
     //references on states so interval has access to correct state values
     const resultHullRef = useRef(currentResultHull);
     const stackRef = useRef(currentStack);
-    useEffect(() => {
+    useEffect(() =>
+    {
         resultHullRef.current = currentResultHull;
         stackRef.current = currentStack;
     }, [currentResultHull, currentStack]);
 
 
     //one step of algorithm
-    const step = () => {
-        if (stackRef.current.length === 0 && resultHullRef.current.length === 0) {
-            let initTriangles = initTrianglesPoints(randomPoints)
-            setcurrentStack([[...initTriangles]])
-            setcurrentResultHull([])
+    const step = () =>
+    {
+        if (stackRef.current.length === 0 && resultHullRef.current.length === 0)
+        {
+            let initTriangles = initTrianglesPoints(randomPoints);
+            setcurrentStack([[...initTriangles]]);
+            setcurrentResultHull([]);
 
         }
-        else if (resultHullRef.current.length === 0) {
-            let [newStack, newResultHull] = QuickhullStep([...stackRef.current[stackRef.current.length - 1]])
-            if (newResultHull.length === 0) {
-                setcurrentStack([...stackRef.current, newStack])
+        else if (resultHullRef.current.length === 0)
+        {
+            let [newStack, newResultHull] = QuickhullStep([...stackRef.current[stackRef.current.length - 1]]);
+            if (newResultHull.length === 0)
+            {
+                setcurrentStack([...stackRef.current, newStack]);
 
             }
-            setcurrentResultHull(newResultHull)
+            setcurrentResultHull(newResultHull);
         }
-    }
-    const stepBack = () => {
-        if (resultHullRef.current.length !== 0) {
-            setcurrentResultHull([])
+    };
+    const stepBack = () =>
+    {
+        if (resultHullRef.current.length !== 0)
+        {
+            setcurrentResultHull([]);
         }
-        else {
+        else
+        {
             let currentStack = stackRef.current;
             currentStack.pop();
-            setcurrentStack([...currentStack])
+            setcurrentStack([...currentStack]);
         }
-    }
+    };
 
-    const startAnimation = () => {
-        setanimationState(true)
-        const intervalId = setInterval(() => {
-            step()
-            if (resultHullRef.current.length !== 0) {
+    const startAnimation = () =>
+    {
+        setanimationState(true);
+        const intervalId = setInterval(() =>
+        {
+            step();
+            if (resultHullRef.current.length !== 0)
+            {
                 clearInterval(intervalId);
-                setanimationState(false)
+                setanimationState(false);
             }
         }, animationStepSpeed);
-        setIntervalId(intervalId)
-    }
+        setIntervalId(intervalId);
+    };
 
-    const stopAnimation = () => {
-        setanimationState(false)
+    const stopAnimation = () =>
+    {
+        setanimationState(false);
         clearInterval(intervalId);
         setIntervalId(undefined);
-    }
+    };
 
-    const reset = () => {
-        setcurrentStack([])
-        setcurrentResultHull([])
-        setpointsRegenerateTrigger(!pointsRegenerateTrigger)
-        stopAnimation()
-        setanimationState(false)
-    }
+    const reset = () =>
+    {
+        setcurrentStack([]);
+        setcurrentResultHull([]);
+        setpointsRegenerateTrigger(!pointsRegenerateTrigger);
+        stopAnimation();
+        setanimationState(false);
+    };
 
     return (
         <>
@@ -114,8 +128,9 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((
             <PerspectiveCamera makeDefault fov={75} position={[0, 0, 30]} />
             <ambientLight intensity={0.2} />
             <pointLight position={[20, 20, 20]} />
-            {randomPoints.map(point => {
-                return <Point color='red' position={point} />
+            {randomPoints.map(point =>
+            {
+                return <Point color='red' position={point} />;
             })}
 
             {currentStack.length !== 0 && currentStack[currentStack.length - 1].map((triangle, index) =>
@@ -128,6 +143,8 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((
                     ]}
                     color={0x016b28}
                     outlineColor={0xff0000}
+                    side={THREE.FrontSide}
+
                     opacity={opacity}
                 />
             )}
@@ -142,6 +159,8 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((
                     ]}
                     color={0x016b28}
                     outlineColor={0xffffff}
+                    side={THREE.FrontSide}
+
                     opacity={opacity} />
             )}
 
@@ -155,6 +174,7 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((
                     ]}
                     color={0xff9d1c}
                     outlineColor={0xff0000}
+                    side={THREE.DoubleSide}
                     opacity={opacity} />
             }
 
@@ -167,8 +187,8 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((
 
 
         </>
-    )
-})
+    );
+});
 export default QuickhullScene;
 
 

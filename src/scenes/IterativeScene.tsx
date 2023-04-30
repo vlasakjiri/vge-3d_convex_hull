@@ -34,10 +34,11 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
   animationStepSpeed = 500,
   pointsCount = 10,
   opacity = 0.5
-}: AlgoSceneProps, ref: Ref<AlgorithmSceneRef>) => {
+}: AlgoSceneProps, ref: Ref<AlgorithmSceneRef>) =>
+{
   const [intervalId, setIntervalId] = React.useState<NodeJS.Timer | undefined>();
   const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
-  const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10).map(point => Point3D.fromVector3(point)), [pointsRegenerateTrigger,pointsCount]);
+  const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10).map(point => Point3D.fromVector3(point)), [pointsRegenerateTrigger, pointsCount]);
 
   const [currentStack, setcurrentStack] = useState(new Array<State>());
   const [stackIdx, setstackIdx] = useState(0);
@@ -57,7 +58,8 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
   const currentStackRef = useRef(currentStack);
   const edgesToRemoveRef = useRef(edgesToRemove);
 
-  useEffect(() => {
+  useEffect(() =>
+  {
     pointIdxRef.current = pointIdx;
     shouldCleanRef.current = shouldClean;
     stackIdxRef.current = stackIdx;
@@ -81,8 +83,10 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
 
 
 
-  const step = () => {
-    if (stackIdxRef.current < currentStackRef.current.length - 1) {
+  const step = () =>
+  {
+    if (stackIdxRef.current < currentStackRef.current.length - 1)
+    {
       let stack = currentStackRef.current;
       let state = stack[stackIdxRef.current + 1];
       setcurrentResultHull(state.currentResultHull);
@@ -91,9 +95,11 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
       setedgesToRemove(state.edgesToRemove);
       setstackIdx(stackIdxRef.current + 1);
     }
-    else {
+    else
+    {
       // let edgesToRemove: Edge[] = [];
-      if (pointIdxRef.current < randomPoints.length - 1) {
+      if (pointIdxRef.current < randomPoints.length - 1)
+      {
         setcurrentResultHull(hullObjRef.current.faces);
         setcurrentStack([...currentStackRef.current,
         {
@@ -104,18 +110,22 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
         }]);
         setstackIdx(stackIdxRef.current + 1);
       }
-      if (shouldCleanRef.current) {
+      if (shouldCleanRef.current)
+      {
         hullObjRef.current.cleanUp();
         setshouldClean(false);
         setedgesToRemove([]);
         console.log("cleaned");
       }
-      else if (pointIdxRef.current < randomPoints.length) {
-        if (pointIdxRef.current === 0) {
+      else if (pointIdxRef.current < randomPoints.length)
+      {
+        if (pointIdxRef.current === 0)
+        {
           hullObjRef.current.buildFirstHull(randomPoints);
           setPointIdx(4);
         }
-        else {
+        else
+        {
           let addedNew = hullObjRef.current.increHull(randomPoints[pointIdxRef.current]);
           setshouldClean(addedNew);
           let edgesToRemove = addedNew ? hullObjRef.current.edges.filter(edge => edge.remove) : [];
@@ -128,8 +138,10 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
   };
 
 
-  const stepBack = () => {
-    if (stackIdxRef.current > 0) {
+  const stepBack = () =>
+  {
+    if (stackIdxRef.current > 0)
+    {
       let stack = currentStackRef.current;
       let state = stack[stackIdxRef.current - 1];
       setcurrentResultHull(state.currentResultHull);
@@ -140,14 +152,17 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
     }
   };
 
-  const startAnimation = () => {
+  const startAnimation = () =>
+  {
     setanimationState(true);
 
-    const intervalId = setInterval(() => {
+    const intervalId = setInterval(() =>
+    {
 
       step();
       //stop animation condition
-      if (pointIdxRef.current === randomPoints.length) {
+      if (pointIdxRef.current === randomPoints.length)
+      {
         clearInterval(intervalId);
         setanimationState(false);
       }
@@ -155,13 +170,15 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
     setIntervalId(intervalId);
   };
 
-  const stopAnimation = () => {
+  const stopAnimation = () =>
+  {
     setanimationState(false);
     clearInterval(intervalId);
     setIntervalId(undefined);
   };
 
-  const reset = () => {
+  const reset = () =>
+  {
     stopAnimation();
     setpointsRegenerateTrigger(!pointsRegenerateTrigger);
     setanimationState(false);
@@ -180,19 +197,31 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
     <>
       <OrbitControls />
       <PerspectiveCamera makeDefault fov={75} position={[0, 0, 30]} />
-      <ambientLight intensity={0.2} />
+      {/* <ambientLight intensity={1} /> */}
 
-      {/* <pointLight position={[20, 20, 20]} /> */}
+      {/* <pointLight position={[20, 20, 20]} />
+      <pointLight position={[-20, 20, 20]} />
+      <pointLight position={[-20, -20, 20]} />
+      <pointLight position={[-20, -20, -20]} />
 
 
-      {randomPoints.map(point => {
+
+      <pointLight position={[-20, -20, -20]} />
+      <pointLight position={[-20, 20, -20]} /> */}
+
+
+
+
+      {randomPoints.map(point =>
+      {
         return <Point color='red' position={point.toVector3()} />;
       })}
       {!shouldClean && pointIdx > 0 && pointIdx < randomPoints.length - 1 &&
         <Point color="#ffff00" position={randomPoints[pointIdx]?.toVector3()} />
       }
       {
-        currentResultHull.map(triangle => {
+        currentResultHull.map(triangle =>
+        {
           return <Triangle opacity={opacity} color='green' vertices={[
             triangle.vertices[0].toVector3(),
             triangle.vertices[1].toVector3(),
@@ -201,7 +230,8 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
         })
       }
       {
-        edgesToRemove.map(edge => {
+        edgesToRemove.map(edge =>
+        {
           return <Line color={"#ffff00"} start={edge.endpoints[0].toVector3()} end={edge.endpoints[1].toVector3()}  ></Line>;
         })
 
