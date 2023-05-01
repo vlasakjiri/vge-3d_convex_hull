@@ -40,7 +40,7 @@ const QuickhullScene = forwardRef<AlgorithmSceneRef, QuickhullSceneProps>((
 
     //switch value to trigger points regeneration
     const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
-    const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10), [pointsRegenerateTrigger, pointsCount]);
+    const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10), [pointsRegenerateTrigger]);
     const [currentStack, setcurrentStack] = useState(new Array<Array<TrianglePointsPair>>());
     const [currentResultHull, setcurrentResultHull] = useState(new Array<THREE.Triangle>());
     //animation interval

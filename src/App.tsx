@@ -76,11 +76,7 @@ function App() {
             <button onClick={() => algorithmSceneRef.current.step()}><FaStepForward size={16} /></button>
 
 
-            <button style={
-              {
-                padding: "4px 14px"
-              }
-            } disabled={pointsCount < 4 || pointsCount > 1000} onClick={() => algorithmSceneRef.current.reset()}><MdRefresh size={28} /></button>
+            <button id='resetBtn' disabled={pointsCount < 4 || pointsCount > 1000} onClick={() => algorithmSceneRef.current.reset()}><MdRefresh size={28} /></button>
             <div className='inputContainer'>
 
               <label htmlFor='pointsCount'>Points count:</label>

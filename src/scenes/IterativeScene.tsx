@@ -38,7 +38,7 @@ const AlgoScene = forwardRef<AlgorithmSceneRef, AlgoSceneProps>(({
 {
   const [intervalId, setIntervalId] = React.useState<NodeJS.Timer | undefined>();
   const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
-  const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10).map(point => Point3D.fromVector3(point)), [pointsRegenerateTrigger, pointsCount]);
+  const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10).map(point => Point3D.fromVector3(point)), [pointsRegenerateTrigger]);
 
   const [currentStack, setcurrentStack] = useState(new Array<State>());
   const [stackIdx, setstackIdx] = useState(0);

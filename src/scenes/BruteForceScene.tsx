@@ -35,7 +35,7 @@ const BruteForceScene = forwardRef<AlgorithmSceneRef, SceneProps>((
 
     //switch value to trigger points regeneration
     const [pointsRegenerateTrigger, setpointsRegenerateTrigger] = useState(false);
-    const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10), [pointsCount]);
+    const randomPoints = useMemo(() => generatePointsInRange(pointsCount, -10, 10), [pointsRegenerateTrigger]);
     //animation interval
     const [intervalId, setIntervalId] = React.useState<NodeJS.Timer | undefined>();
 
