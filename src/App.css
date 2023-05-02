@@ -19,7 +19,9 @@
     transition: background-color 0.3s ease;
   }
   
-
+  #animationControls #resetBtn{
+    padding: 5px 14px;
+  }
   
 #menuLinks a {
   color: #333;
